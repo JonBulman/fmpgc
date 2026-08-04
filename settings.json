@@ -1,0 +1,23 @@
+{
+    "GOOGLE_FMPGC_CREDENTIALS": "/Users/Jon/client_secret_889125287785-7cik8oj9dog949offqhp7mth63tglo1s.apps.googleusercontent.com.json",
+    "GOOGLE_FMPGC_TOKEN": "/Users/Jon/fmpgc_token.json",
+
+    "FMPGC_IT_EMAIL": "fmpgc.it@gmail.com",
+    "FMPGC_CSV_FILE": "fmpgc_members.csv",
+    "FMPGC_IMAGE": "fmpgc_logo_for_email.png",
+
+    "FMPGC_MEMBERSHIP_EMAIL": "fmpgcmembership@gmail.com",
+    "FMPGC_GROUP_EMAIL": "fmpgc@googlegroups.com",
+    
+    "FMPGC_WHATSAPP_GROUP_LINK": "https://chat.whatsapp.com/Ckg2oyjPUXYBN02lwr39Pe",
+    "FMPGC_SHED_CODE": "3504",
+    
+    "FMPGC_EASYTEAM_APPLE": "https://apps.apple.com/app/id6743671127",
+    "FMPGC_EASYTEAM_ANDROID": "https://play.google.com/store/apps/details?id=com.robpelley.easyteamonline",
+    
+    "FMPGC_MEMBERSHIP_RENEWAL_LINK": "https://forms.gle/7CAie4oKMpDuxTP18",
+    "FMPGC_INVITE_LINK": "https://app.easyteam.online/join?club=712&inv=PqzihutDxbkHoOmOqbTZQMMQ1o6N8SQF",
+    
+    "FMPGC_WEBSITE": "http://www.fmpgc.org/",
+    "FMPGC_MEMBERS_AREA": "https://www.fmpgc.org/members-area"
+}
