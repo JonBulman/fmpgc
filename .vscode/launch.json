@@ -5,7 +5,7 @@
             "name": "Python: Run",
             "type": "debugpy",
             "request": "launch",
-            "program": "${workspaceFolder}/src/fmpgc.py",
+            "program": "${workspaceFolder}/src/fmpgc/main.py",
             "cwd": "${workspaceFolder}/src",
             "python": "/Users/Jon/.venvs/automation/bin/python"
         }

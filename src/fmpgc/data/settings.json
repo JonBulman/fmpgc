@@ -3,6 +3,7 @@
     "GOOGLE_FMPGC_TOKEN": "/Users/Jon/fmpgc_token.json",
 
     "FMPGC_IT_EMAIL": "fmpgc.it@gmail.com",
+    "FMPGC_DATA_FOLDER": "src/fmpgc/data/",
     "FMPGC_CSV_FILE": "fmpgc_members.csv",
     "FMPGC_IMAGE": "fmpgc_logo_for_email.png",
 
