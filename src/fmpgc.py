@@ -34,8 +34,8 @@ def main():
 )
     args = parser.parse_args()
 
-    print(f"Config file: {args.config_file}")
-    config_file = args.config_file
+    print(f"Config file: str({args.config_file})")
+    config_file = str(args.config_file)
 
     config = jon_bulman_utilities.Load_Config(config_file)
     if config is None:
