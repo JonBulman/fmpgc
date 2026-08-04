@@ -107,8 +107,8 @@ def main():
             print("Loaded:", index, " name ", name, "email address", emailAddress)
 
     try:
-        htmlfile = Path(str(data_folder)) / Path("new_member_template.html")
-        new_member_template_html = load_html_template(htmlfile)
+        htmlfile = Path(str(data_folder)) / Path("membership_new_template.html")
+        membership_new_template_html = load_html_template(htmlfile)
         htmlfile = Path(str(data_folder)) / Path("membership_expiring_template.html")
         membership_expiring_template = load_html_template(htmlfile)
         htmlfile = Path(str(data_folder)) / Path("membership_expired_template.html")
@@ -159,7 +159,7 @@ def main():
             match int_Option:
                 case 1:
                     subject = "Welcome to FMPGC!"
-                    email_body += template_edit_html(template_data,new_member_template_html)
+                    email_body += template_edit_html(template_data,membership_new_template_html)
                 case 2:
                     subject = "FMPGC Membership Expiring"
                     email_body += template_edit_html(template_data,membership_expiring_template)
