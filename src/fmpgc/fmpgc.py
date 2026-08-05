@@ -84,7 +84,7 @@ def main():
             emailAddress = row["Email"]
             print("CSV Loaded:", index, " name ", name, "email address", emailAddress)
     column_names = csvData.columns.tolist()
-    print(f"The following may be used as variables in the html templates\n{column_names}\ne.g. {{{{Name}}}} will be replaced with that row/column contents")
+    print(f"The following {len(column_names)} may be used as variables in the html templates\n{column_names}\ne.g. {{{{Name}}}} will be replaced with that row/column contents")
     try:
         htmlfile = Path(str(data_folder)) / Path("membership_new_template.html")
         membership_new_template_html = load_html_template(htmlfile)
@@ -142,6 +142,8 @@ def main():
             if emailBCC :
                 bcc = emailAddress
                 emailAddress = None
+            else :
+                bcc = None
             email_body=""
             subject = ""
 
