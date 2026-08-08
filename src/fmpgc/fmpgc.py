@@ -68,7 +68,7 @@ def main():
     csv_file = data_folder+"fmpgc_members.csv"
 
     try:
-        csvData = pd.read_csv(str(csv_file))
+        csvData = pd.read_csv(csv_file, encoding="cp1252")
     except Exception as e:
         print("Error reading CSV file:", e)
         sys.exit(1)
