@@ -78,6 +78,15 @@ def main():
     else:
         # remove any blank rows
         csvData = csvData.dropna(how="all")
+        try:
+            idx_name = csvData.columns.get_loc("Name")
+            idx_email = csvData.columns.get_loc("Email")
+            idx_invite = csvData.columns.get_loc("Invite Link")
+        except KeyError as e:
+            print(f"Error: Missing expected column in CSV: {e}")
+            sys.exit(1)
+        print(f"idx_name: {idx_name}, idx_email: {idx_email}, idx_invite: {idx_invite}")
+
         for index, row in csvData.iterrows():
             name = row["Name"]
             emailAddress = row["Email"]
@@ -124,17 +133,24 @@ def main():
         )
     print('------------- ')
 
-    nameCol = csvData.columns[0]
-    emailCol = csvData.columns[1]
+    onceOnly = False
+    invite_link = ""
     while ( option := input('Please select required option? >> ')) in ['0', '1', '2', '3', '4','5']:
         if option == '0':
             print("Exiting")
             break
         int_Option = int(option)
 
-        for index, row in csvData.iterrows():
-            name = row[nameCol]
-            emailAddress = row[emailCol]
+        if onceOnly == False:
+            onceOnly = True
+            # Ask for the invite link
+            invite_link = input('Enter the invite link -> ')
+
+        for index, row in csvData.iterrows(): 
+            name = row[idx_name]
+            emailAddress = row[idx_email]
+            row[idx_invite] = invite_link
+
             print(f"Processing:{index} name:{name} to:{emailAddress} cc:{emailCC} bcc:{emailBCC}")
             if emailCC :
                 cc = membership_email
