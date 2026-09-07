@@ -78,21 +78,20 @@ def main():
     else:
         # remove any blank rows
         csvData = csvData.dropna(how="all")
-        try:
-            idx_name = csvData.columns.get_loc("Name")
-            idx_email = csvData.columns.get_loc("Email")
-            idx_invite = csvData.columns.get_loc("Invite Link")
-        except KeyError as e:
-            print(f"Error: Missing expected column in CSV: {e}")
-            sys.exit(1)
-        print(f"idx_name: {idx_name}, idx_email: {idx_email}, idx_invite: {idx_invite}")
 
-        for index, row in csvData.iterrows():
-            name = row["Name"]
-            emailAddress = row["Email"]
-            print("CSV Loaded:", index, " name ", name, "email address", emailAddress)
-    column_names = csvData.columns.tolist()
-    print(f"The following {len(column_names)} may be used as variables in the html templates\n{column_names}\ne.g. {{{{Name}}}} will be replaced with that row/column contents")
+        try:
+            for index, row in csvData.iterrows():
+                name = row["Name"]
+                emailAddress = row["Email"]
+                invite_link = row["Invite Link"]
+                print("CSV Loaded:", index, " name ", name, "email address", emailAddress, "invite link", invite_link)
+            column_names = csvData.columns.tolist()
+            print(f"The following {len(column_names)} may be used as variables in the html templates\n{column_names}\ne.g. {{{{Name}}}} will be replaced with that row/column contents")
+        except Exception as e:
+            print("Error processing CSV data:", e)
+            print("Please ensure the CSV file has (at least) the following columns: Name, Email, Invite Link")
+            sys.exit(1)
+
     try:
         htmlfile = Path(str(data_folder)) / Path("membership_new_template.html")
         membership_new_template_html = load_html_template(htmlfile)
@@ -144,14 +143,15 @@ def main():
         if onceOnly == False:
             onceOnly = True
             # Ask for the invite link
-            invite_link = input('Enter the invite link -> ')
+            invite_link = input('Enter the EasyTeam invite link -> ')
 
-        for index, row in csvData.iterrows(): 
-            name = row[idx_name]
-            emailAddress = row[idx_email]
-            row[idx_invite] = invite_link
-
+        for index, row in csvData.iterrows():
+            name = row["Name"]
+            emailAddress = row["Email"]
+            row["Invite Link"] = invite_link
             print(f"Processing:{index} name:{name} to:{emailAddress} cc:{emailCC} bcc:{emailBCC}")
+            #print(index, name, invite_link,row["Invite Link"])
+            #input('Press Enter to continue...')   
             if emailCC :
                 cc = membership_email
             if emailBCC :
@@ -223,6 +223,7 @@ def template_edit_html(row, inputhtml: str) -> str:
     for col in row.index:
         value = row[col]
         body = body.replace(f"{{{{{col}}}}}", str(value))
+        #print(f"Replaced {{{{{col}}}}} with {value}")
 
     return body
 
