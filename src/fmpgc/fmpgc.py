@@ -23,18 +23,18 @@ def main():
 
     parser = argparse.ArgumentParser(description="FMPGC Email Script")
     parser.add_argument(
-        "--config-file",
-        "-c",
-        help="Location of the config file",
-        type=str,
-        default="src/fmpgc/data/settings.json"
-        )
-    parser.add_argument(
         "--data-folder",
         "-d",
         help="Data folder location",
         type=str,
-        default="src/fmpgc/data/"
+        default="data/"
+        )
+    parser.add_argument(
+        "--config-file",
+        "-c",
+        help="Location of the config file",
+        type=str,
+        default="data/settings.json"
         )
     parser.add_argument(
         "--membershipemail",
