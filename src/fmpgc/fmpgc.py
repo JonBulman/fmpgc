@@ -1,13 +1,18 @@
-# Imports
+# Standard library
+from datetime import datetime
+from pathlib import Path
+from zoneinfo import ZoneInfo
 import argparse
 import base64
-from datetime import datetime
 import os
-import pandas as pd
 import sys
-from zoneinfo import ZoneInfo
-from pathlib import Path
+
+# Third-party
+import pandas as pd
+
+# Local application
 import jon_bulman_utilities
+
 
 def main():
     # This ensures every time the script starts, it prints a clear timestamp
@@ -40,13 +45,13 @@ def main():
         )
     args = parser.parse_args()
 
-    print(f"Config file: {args.config_file}")
+    print(f"Config file: [{args.config_file}]")
     config_file = str(args.config_file)
 
-    print(f"Data folder: {args.data_folder}")
+    print(f"Data folder: [{args.data_folder}]")
     data_folder = str(args.data_folder)
 
-    print(f"Membership email: {args.membershipemail}")
+    print(f"Membership email: [{args.membershipemail}]")
     membership_email = str(args.membershipemail)
 
     config = jon_bulman_utilities.Load_Config(config_file)
@@ -56,57 +61,76 @@ def main():
     
     credentials   = jon_bulman_utilities.Get_Variable("GOOGLE_FMPGC_CREDENTIALS",config,0)
     token_file    = jon_bulman_utilities.Get_Variable("GOOGLE_FMPGC_TOKEN",config,0)
-
-    print("Credentials:",credentials)
-    print("Token File:",token_file)
+    easyteam_invite_link = jon_bulman_utilities.Get_Variable("EASYTEAM_INVITE_LINK",config,0)
+    print(f"\nCredentials: [{credentials}]")
+    print(f"Token File:[{token_file}]")
 
     # Check the csv file exists
     current_directory = os.getcwd()
-    print("The current working directory is:", current_directory)
+    print(f"The current working directory is: [{current_directory}]\n")
 
     csv_file = data_folder+"fmpgc_members.csv"
-
     try:
         csvData = pd.read_csv(csv_file, encoding="cp1252")
-    except Exception as e:
-        print("Error reading CSV file:", e)
+    except OSError as e:
+        print(f"Error reading CSV file: [{e}]")
         sys.exit(1)
 
     if csvData is None:
-        print("Error loading CSV data, exiting")
+        print(f"Error loading CSV data, exiting {csv_file}")
         sys.exit(1)
     else:
         # remove any blank rows
         csvData = csvData.dropna(how="all")
 
-        try:
-            for index, row in csvData.iterrows():
-                name = row["Name"]
-                emailAddress = row["Email"]
-                invite_link = row["Invite Link"]
-                print("CSV Loaded:", index, " name ", name, "email address", emailAddress, "invite link", invite_link)
-            column_names = csvData.columns.tolist()
-            print(f"The following {len(column_names)} may be used as variables in the html templates\n{column_names}\ne.g. {{{{Name}}}} will be replaced with that row/column contents")
-        except Exception as e:
-            print("Error processing CSV data:", e)
-            print("Please ensure the CSV file has (at least) the following columns: Name, Email, Invite Link")
+        required_columns = {"Name", "Email", "Invite Link"}
+        missing_columns = required_columns - set(csvData.columns)
+
+        if missing_columns:
+            print(
+                f"CSV is missing required columns: {', '.join(sorted(missing_columns))}"
+            )
             sys.exit(1)
 
+        for index, row in csvData.iterrows():
+            name = row["Name"]
+            email_address = row["Email"]
+            invite_link = row["Invite Link"]
+
+            print(
+                f"CSV Loaded: [{index}] Name: [{name}] Email: [{email_address}]"
+            )
+
+        column_names = csvData.columns.tolist()
+        print(
+            f"\nThe following {len(column_names)} names may be used as variables "
+            f"in the html templates\n{column_names}\n"
+            f"e.g. {{{{Name}}}} will be replaced with that row/column contents\n"
+        )
+
+    # Load the HTML templates
+    template_files = {
+        "expired": "membership_expired_template.html",
+        "expiring": "membership_expiring_template.html",
+        "new": "membership_new_template.html",
+        "renewed": "membership_renewed_template.html",
+    }
+
+    templates = {}
+
     try:
-        htmlfile = Path(str(data_folder)) / Path("membership_new_template.html")
-        membership_new_template_html = load_html_template(htmlfile)
-        htmlfile = Path(str(data_folder)) / Path("membership_expiring_template.html")
-        membership_expiring_template = load_html_template(htmlfile)
-        htmlfile = Path(str(data_folder)) / Path("membership_expired_template.html")
-        membership_expired_template = load_html_template(htmlfile)
-        htmlfile = Path(str(data_folder)) / Path("membership_renewed_template.html")
-        membership_renewed_template = load_html_template(htmlfile) 
-    except Exception as e:
-        print("Error reading HTML file:", e)
+        for name, filename in template_files.items():
+            htmlfile = Path(data_folder) / filename
+            templates[name] = htmlfile.read_text(encoding="utf-8")
+    except OSError as e:
+        print(f"Error reading template file: [{e}]")
         sys.exit(1)
 
-    #print(html)
-    #input()
+    membership_expired_template = templates["expired"]
+    membership_expiring_template = templates["expiring"]
+    membership_new_template = templates["new"]
+    membership_renewed_template = templates["renewed"]
+
     print('------------- ')
 
     emailCC = False
@@ -143,7 +167,10 @@ def main():
         if onceOnly == False:
             onceOnly = True
             # Ask for the invite link
-            invite_link = input('Enter the EasyTeam invite link -> ')
+            print(f"EasyTeam Invite Link:[{easyteam_invite_link}]\n")
+            invite_link = input('Override the EasyTeam invite link? (non-blank is yes) -> ')
+            if invite_link == "":
+                invite_link = easyteam_invite_link
 
         for index, row in csvData.iterrows():
             name = row["Name"]
@@ -166,7 +193,7 @@ def main():
             match int_Option:
                 case 1:
                     subject = "Welcome to FMPGC!"
-                    email_body += template_edit_html(row,membership_new_template_html)
+                    email_body += template_edit_html(row,membership_new_template)
                 case 2:
                     subject = "FMPGC Membership Expiring"
                     email_body += template_edit_html(row,membership_expiring_template)
@@ -181,9 +208,13 @@ def main():
                     tmpl = input('Enter template name (defaults to membership_broadcast.html)-> ')
                     if tmpl == "" :
                         tmpl = mbh
+                    try:
+                        htmlfile = Path(str(data_folder)) / Path(tmpl)
+                        tailored_template = htmlfile.read_text(encoding="utf-8")
+                    except OSError as e:
+                        print(f"Error reading template file: [{e}]")
+                        sys.exit(1)
 
-                    htmlfile = Path(str(data_folder)) / Path(tmpl)
-                    tailored_template = load_html_template(htmlfile)
                     subject = input('Enter Subject -> ')
                     if subject == "" :
                         action = False
@@ -199,21 +230,13 @@ def email_header(image_src):
     )
     return body
 
-def Load_image_as_base64(image_path):
+def load_image_as_base64(image_path):
     try:
         with open(image_path, "rb") as image_file:
             encoded_string = base64.b64encode(image_file.read()).decode("utf-8")
             return f"data:image/png;base64,{encoded_string}"
-    except Exception as e:
+    except OSError as e:
         print(f"Error loading image {image_path}: {e}")
-        return ""
-
-def load_html_template(template_path):
-    try:
-        html = template_path.read_text(encoding="utf-8")
-        return html
-    except Exception as e:
-        print(f"Error loading HTML template {template_path}: {e}")
         return ""
 
 def template_edit_html(row, inputhtml: str) -> str:
