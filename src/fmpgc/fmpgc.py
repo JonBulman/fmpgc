@@ -95,7 +95,6 @@ def main():
         for index, row in csvData.iterrows():
             name = row["Name"]
             email_address = row["Email"]
-            #invite_link = row["Invite Link"]
 
             print(
                 f"CSV Loaded: [{index}] Name: [{name}] Email: [{email_address}]"
@@ -158,9 +157,9 @@ def main():
         )
     print('------------- ')
 
-    onceOnly = False
+    #onceOnly = False
     onlyOnceTemplate = False
-    invite_link = None
+    #invite_link = None
     subject = ""
     broadcast_template = "membership_broadcast.html"
     while ( option := input('Please select required option? >> ')) in ['0', '1', '2', '3', '4','5']:
@@ -172,10 +171,10 @@ def main():
         for index, row in csvData.iterrows():
             name = row["Name"]
             emailAddress = row["Email"]
-            #row["Invite Link"] = invite_link
+            ##row["Invite Link"] = invite_link
             print(f"Processing:{index} name:{name} to:{emailAddress} cc:{emailCC} bcc:{emailBCC}")
-            #print(index, name, invite_link,row["Invite Link"])
-            #input('Press Enter to continue...')   
+            ##print(index, name, invite_link,row["Invite Link"])
+            ##input('Press Enter to continue...')   
             if emailCC :
                 cc = membership_email
             if emailBCC :
@@ -188,12 +187,12 @@ def main():
             action=True
             match int_Option:
                 case 1:
-                    if int_Option == 1 and onceOnly == False:
-                        onceOnly = True
-                        # Ask for the invite link
-                        while not invite_link:
-                            invite_link = input('Enter EasyTeam invite link -> ')
-                        row["Invite Link"] = invite_link
+                    #if int_Option == 1 and onceOnly == False:
+                    #    onceOnly = True
+                    #    # Ask for the invite link
+                    #    while not invite_link:
+                    #        invite_link = input('Enter EasyTeam invite link -> ')
+                    #    row["Invite Link"] = invite_link
                     subject = "Welcome to FMPGC!"
                     email_body += template_edit_html(row,membership_new_template)
                 case 2:
