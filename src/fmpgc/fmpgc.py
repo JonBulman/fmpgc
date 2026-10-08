@@ -116,8 +116,9 @@ def main():
         "expiring": "membership_expiring_template.html",
         "new": "membership_new_template.html",
         "renewed": "membership_renewed_template.html",
-        "joining": "membership_joining_template.html",
-        "renewaloffer": "membership_renewaloffer_template.html"
+        "payment_request": "membership_payment_request_template.html",
+        "invite_to_renew": "membership_invite_to_renew_template.html",
+        "invite_to_join": "membership_invite_to_join_template.html"
     }
 
     templates = {}
@@ -130,12 +131,13 @@ def main():
         print(f"Error reading template file: [{e}]")
         sys.exit(1)
 
-    membership_expired_template  = templates["expired"]
-    membership_expiring_template = templates["expiring"]
-    membership_new_template      = templates["new"]
-    membership_renewed_template  = templates["renewed"]
-    membership_renewaloffer_template = templates["renewaloffer"]
-    membership_joining_template  = templates["joining"]
+    membership_expired_template          = templates["expired"]
+    membership_expiring_template         = templates["expiring"]
+    membership_new_template              = templates["new"]
+    membership_renewed_template          = templates["renewed"]
+    membership_invite_to_renew_template  = templates["invite_to_renew"]
+    membership_invite_to_join_template   = templates["invite_to_join"]
+    membership_payment_request_template  = templates["payment_request"]
     print('------------- ')
 
     #emailCC = False
@@ -155,13 +157,14 @@ def main():
         print("Emails will be sent as BCC to the member, and the member will not see the email address of the sender")
 
     print('Options: \n'+'------------- \n'+
-        '1. [Membership] Joining member - please pay!\n'
-        '2. [IT] Add new member (have paid)\n'
-        '3. [Membership] Member renewal offer (new year, now pay!)\n'
+        '1. [Membership] New Member invite to join (personal details request)\n'
+        '2. [Membership-Treasury?] Payment Request (Joining member)\n'
+        '3. [Membership-Treasury?] Payment Request (Member invite to renew)\n'
         '4. [Membership] Member renewed\n'
         '5. [Membership] Member expiring\n'
-        '6. [IT] Member expired\n'
-        '7. [IT] Tailored Template\n'
+        '6. [IT] Add new member (have paid)\n'
+        '7. [IT] Member expired\n'
+        '8. [IT] Tailored Template\n'
         )
     print('------------- ')
 
@@ -170,20 +173,18 @@ def main():
     #invite_link = None
     subject = ""
     broadcast_template = "membership_broadcast.html"
-    while ( option := input('Please select required option? >> ')) in ['0', '1', '2', '3', '4','5','6']:
+    while ( option := input('Please select required option? >> ')) in ['0', '1', '2', '3', '4','5','6','7','8']:
         if option == '0':
             print("Exiting")
             break
         int_Option = int(option)
-        if int_Option in [2,6,7]: # email from IT
-            print("it")
+        if int_Option in [6,7,8]: # email from IT
             credentials = it_credentials
             token_file = it_token_file
-            if int_Option in [2,6]:
+            if int_Option in [6,7]:
                 cc = membership_email
             #    print("Emails will be CC'd to the membership email address")            
         else:                           # email from membership
-            print("membership")
             credentials = membership_credentials
             token_file = membership_token_file
 
@@ -203,24 +204,27 @@ def main():
             action=True
             match int_Option:
                 case 1:
-                    subject = "FMPGC Membership accepted!"
-                    email_body += template_edit_html(row,membership_joining_template)
+                    subject = "FMPGC Invitation to Join!"
+                    email_body += template_edit_html(row,membership_invite_to_join_template)
                 case 2:
-                    subject = "Welcome to FMPGC!"
-                    email_body += template_edit_html(row,membership_new_template)
+                    subject = "FMPGC Membership Payment Request!"
+                    email_body += template_edit_html(row,membership_payment_request_template)
                 case 3:
-                    subject = "FMPGC Membership Renewal Offer"
-                    email_body += template_edit_html(row,membership_renewaloffer_template)
+                    subject = "FMPGC Membership Renewal Invitation!"
+                    email_body += template_edit_html(row,membership_invite_to_renew_template)
                 case 4:
-                    subject = "FMPGC Membership Renewal - Welcome Back!"
+                    subject = "FMPGC Membership Payment received - Welcome Back!"
                     email_body += template_edit_html(row,membership_renewed_template)
                 case 5:
                     subject = "FMPGC Membership Expiring"
                     email_body += template_edit_html(row,membership_expiring_template)
                 case 6:
+                    subject = "FMPGC Payment Received - Welcome to FMPGC!"
+                    email_body += template_edit_html(row,membership_new_template)
+                case 7:
                     subject = "FMPGC Membership Expired - Sorry to see you go!"
                     email_body += template_edit_html(row,membership_expired_template)
-                case 7:
+                case 8:
                     tmpl = "membership_broadcast.html"
                     if onlyOnceTemplate == False:
                         tmpl = input('Enter template name (defaults to membership_broadcast.html)-> ')
