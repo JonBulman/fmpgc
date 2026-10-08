@@ -186,7 +186,7 @@ def main():
             print("membership")
             credentials = membership_credentials
             token_file = membership_token_file
-        input("Press Enter to continue...")
+
         for index, row in csvData.iterrows():
             name = row["Name"]
             emailAddress = row["Email"]
