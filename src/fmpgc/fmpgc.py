@@ -3,7 +3,6 @@ from datetime import datetime
 from pathlib import Path
 from zoneinfo import ZoneInfo
 import argparse
-import base64
 import os
 import sys
 
@@ -13,6 +12,32 @@ import pandas as pd
 # Local application
 import jon_bulman_utilities
 
+from enum import IntEnum
+
+class Option(IntEnum):
+    NEW_MEMBER_INVITE = 1
+    JOINING_MEMBER_PAYMENT = 2
+    RENEWAL_PAYMENT = 3
+    MEMBER_RENEWED = 4
+    MEMBER_EXPIRING = 5
+    ADD_NEW_MEMBER = 6
+    MEMBER_EXPIRED = 7
+    TAILORED_TEMPLATE = 8
+
+IT_OPTIONS = {Option.ADD_NEW_MEMBER, Option.MEMBER_EXPIRED, Option.TAILORED_TEMPLATE}
+TREASURY_OPTIONS = {Option.JOINING_MEMBER_PAYMENT, Option.RENEWAL_PAYMENT}
+MEMBERSHIP_OPTIONS = {Option.NEW_MEMBER_INVITE, Option.MEMBER_RENEWED, Option.MEMBER_EXPIRING}
+
+OPTIONS = {
+    1: "[Membership] New Member invite to join (personal details request)",
+    2: "[Membership-Treasury] Payment Request (Joining member)",
+    3: "[Membership-Treasury] Payment Request (Member invite to renew)",
+    4: "[Membership] Member renewed",
+    5: "[Membership] Member expiring",
+    6: "[IT] Add new member (have paid)",
+    7: "[IT] Member expired",
+    8: "[IT] Tailored Template",
+}
 
 def main():
     # This ensures every time the script starts, it prints a clear timestamp
@@ -63,11 +88,12 @@ def main():
     it_token_file    = jon_bulman_utilities.Get_Variable("GOOGLE_FMPGC_IT_TOKEN",config,0)
     membership_credentials   = jon_bulman_utilities.Get_Variable("GOOGLE_FMPGC_MEMBERSHIP_CREDENTIALS",config,0)
     membership_token_file    = jon_bulman_utilities.Get_Variable("GOOGLE_FMPGC_MEMBERSHIP_TOKEN",config,0)
-    print(f"IT Credentials: [{it_credentials}]")
-    print(f"IT Token File:[{it_token_file}]")
-    print(f"Membership Credentials: [{membership_credentials}]")
-    print(f"Membership Token File:[{membership_token_file}]")
-
+    #print(f"IT Credentials: [{it_credentials}]")
+    #print(f"IT Token File:[{it_token_file}]")
+    #print(f"Membership Credentials: [{membership_credentials}]")
+    #print(f"Membership Token File:[{membership_token_file}]")
+    bcc_emails = jon_bulman_utilities.Get_Variable("FMPGC_BCC_EMAILS",config,0)
+    print(f"BCC Emails: [{bcc_emails}]")
     # Check the csv file exists
     current_directory = os.getcwd()
     print(f"The current working directory is: [{current_directory}]\n")
@@ -156,17 +182,11 @@ def main():
         emailBCC = True
         print("Emails will be sent as BCC to the member, and the member will not see the email address of the sender")
 
-    print('Options: \n'+'------------- \n'+
-        '1. [Membership] New Member invite to join (personal details request)\n'
-        '2. [Membership-Treasury?] Payment Request (Joining member)\n'
-        '3. [Membership-Treasury?] Payment Request (Member invite to renew)\n'
-        '4. [Membership] Member renewed\n'
-        '5. [Membership] Member expiring\n'
-        '6. [IT] Add new member (have paid)\n'
-        '7. [IT] Member expired\n'
-        '8. [IT] Tailored Template\n'
-        )
-    print('------------- ')
+    print("Options:")
+    print("-------------")
+    for num, text in OPTIONS.items():
+        print(f"{num}. {text}")
+    print("-------------")
 
     #onceOnly = False
     onlyOnceTemplate = False
@@ -178,10 +198,10 @@ def main():
             print("Exiting")
             break
         int_Option = int(option)
-        if int_Option in [6,7,8]: # email from IT
+        if int_Option in IT_OPTIONS:    # email from IT
             credentials = it_credentials
             token_file = it_token_file
-            if int_Option in [6,7]:
+            if int_Option in [Option.MEMBER_EXPIRED, Option.ADD_NEW_MEMBER]:
                 cc = membership_email
             #    print("Emails will be CC'd to the membership email address")            
         else:                           # email from membership
@@ -191,40 +211,38 @@ def main():
         for index, row in csvData.iterrows():
             name = row["Name"]
             emailAddress = row["Email"]
-            print(f"Processing:{index} name:{name} to:{emailAddress} bcc:{emailBCC}")
-            #if emailCC :
-            #    cc = membership_email
-            if emailBCC :
-                bcc = emailAddress
-                emailAddress = None
-            else :
-                bcc = None
-            email_body=""
 
+            if emailBCC:
+                bcc = f"{emailAddress},{bcc_emails}" if int_Option == Option.ADD_NEW_MEMBER else emailAddress
+                emailAddress = None
+            else:
+                bcc = bcc_emails if int_Option == Option.ADD_NEW_MEMBER else None
+            email_body=""
+            print(f"Processing:{index} name:{name} to:{emailAddress} bcc:{bcc}")
             action=True
             match int_Option:
-                case 1:
+                case Option.NEW_MEMBER_INVITE:
                     subject = "FMPGC Invitation to Join!"
                     email_body += template_edit_html(row,membership_invite_to_join_template)
-                case 2:
+                case Option.JOINING_MEMBER_PAYMENT:
                     subject = "FMPGC Membership Payment Request!"
                     email_body += template_edit_html(row,membership_payment_request_template)
-                case 3:
+                case Option.RENEWAL_PAYMENT:
                     subject = "FMPGC Membership Renewal Invitation!"
                     email_body += template_edit_html(row,membership_invite_to_renew_template)
-                case 4:
+                case Option.MEMBER_RENEWED:
                     subject = "FMPGC Membership Payment received - Welcome Back!"
                     email_body += template_edit_html(row,membership_renewed_template)
-                case 5:
+                case Option.MEMBER_EXPIRING:
                     subject = "FMPGC Membership Expiring"
                     email_body += template_edit_html(row,membership_expiring_template)
-                case 6:
+                case Option.ADD_NEW_MEMBER:
                     subject = "FMPGC Payment Received - Welcome to FMPGC!"
                     email_body += template_edit_html(row,membership_new_template)
-                case 7:
+                case Option.MEMBER_EXPIRED:
                     subject = "FMPGC Membership Expired - Sorry to see you go!"
                     email_body += template_edit_html(row,membership_expired_template)
-                case 8:
+                case Option.TAILORED_TEMPLATE:
                     tmpl = "membership_broadcast.html"
                     if onlyOnceTemplate == False:
                         tmpl = input('Enter template name (defaults to membership_broadcast.html)-> ')
@@ -236,7 +254,7 @@ def main():
                     except OSError as e:
                         print(f"Error reading template file: [{e}]")
                         sys.exit(1)
-                    print(f"Processing:{index} name:{name} to:{emailAddress} bcc:{emailBCC}")
+                    print(f"Processing:{index} name:{name} to:{emailAddress} bcc:{bcc}")
                     print(f"Template: {broadcast_template}")
                     if onlyOnceTemplate == False:
                         subject = input('Enter Subject -> ')
@@ -248,23 +266,9 @@ def main():
                         email_body += template_edit_html(row,str(tailored_template))
                         #print(f"email body {email_body}")
             if action:
-                print(f"Sending email to:{name} to:{emailAddress} bcc:{emailBCC}")
+                print(f"Sending email to:{name} to:{emailAddress} bcc:{bcc}")
+                #input("Press Enter to continue...")
                 jon_bulman_utilities.Email_Me(credentials, token_file, emailAddress, subject, email_body,cc, bcc)
-
-def email_header(image_src):
-    body = (
-        f"{image_src}<br><br>"
-    )
-    return body
-
-def load_image_as_base64(image_path):
-    try:
-        with open(image_path, "rb") as image_file:
-            encoded_string = base64.b64encode(image_file.read()).decode("utf-8")
-            return f"data:image/png;base64,{encoded_string}"
-    except OSError as e:
-        print(f"Error loading image {image_path}: {e}")
-        return ""
 
 def template_edit_html(row, inputhtml: str) -> str:
     body = inputhtml
