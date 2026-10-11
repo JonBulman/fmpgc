@@ -14,7 +14,24 @@ import jon_bulman_utilities
 
 from enum import IntEnum
 
+class IT_OPTIONS(IntEnum):
+    ADD_NEW_MEMBER = 6
+    MEMBER_EXPIRED = 7
+    TAILORED_TEMPLATE = 8
+
+class MEMBERSHIP_OPTIONS(IntEnum):
+    NEW_MEMBER_INVITE = 1
+    JOINING_MEMBER_PAYMENT = 2
+    RENEWAL_PAYMENT = 3
+    MEMBER_RENEWED = 4
+    MEMBER_EXPIRING = 5
+
+class CC_MEMBERSHIP_OPTIONS(IntEnum):
+    ADD_NEW_MEMBER = 6
+    MEMBER_EXPIRED = 7
+
 class Option(IntEnum):
+    EXIT = 0
     NEW_MEMBER_INVITE = 1
     JOINING_MEMBER_PAYMENT = 2
     RENEWAL_PAYMENT = 3
@@ -24,20 +41,47 @@ class Option(IntEnum):
     MEMBER_EXPIRED = 7
     TAILORED_TEMPLATE = 8
 
-IT_OPTIONS = {Option.ADD_NEW_MEMBER, Option.MEMBER_EXPIRED, Option.TAILORED_TEMPLATE}
-TREASURY_OPTIONS = {Option.JOINING_MEMBER_PAYMENT, Option.RENEWAL_PAYMENT}
-MEMBERSHIP_OPTIONS = {Option.NEW_MEMBER_INVITE, Option.MEMBER_RENEWED, Option.MEMBER_EXPIRING}
-
-OPTIONS = {
-    1: "[Membership] New Member invite to join (personal details request)",
-    2: "[Membership-Treasury] Payment Request (Joining member)",
-    3: "[Membership-Treasury] Payment Request (Member invite to renew)",
-    4: "[Membership] Member renewed",
-    5: "[Membership] Member expiring",
-    6: "[IT] Add new member (have paid)",
-    7: "[IT] Member expired",
-    8: "[IT] Tailored Template",
+OPTION_TEXT = {
+    Option.EXIT: "Exit",
+    Option.NEW_MEMBER_INVITE: "[Membership] New Member invite to join (personal details request)",
+    Option.JOINING_MEMBER_PAYMENT: "[Membership-Treasury] Payment Request (Joining member)",
+    Option.RENEWAL_PAYMENT: "[Membership-Treasury] Payment Request (Member invite to renew)",
+    Option.MEMBER_RENEWED: "[Membership] Member renewed",
+    Option.MEMBER_EXPIRING: "[Membership] Member expiring",
+    Option.ADD_NEW_MEMBER: "[IT] Add new member (have paid)",
+    Option.MEMBER_EXPIRED: "[IT] Member expired",
+    Option.TAILORED_TEMPLATE: "[IT] Tailored Template",
 }
+
+def get_menu_option() -> Option:
+    while True:  # Keep looping until they give a valid answer
+        print("\nOptions:")
+        print("-------------")
+
+        for option, description in OPTION_TEXT.items():
+            print(f"{option.value}. {description}")
+
+        print("-------------")
+
+        user_input = input("Select option: ")
+        
+        try:
+            # Try to convert their input to a number
+            i = int(user_input)
+            
+            # Try to match it to a valid Option
+            option = Option(i)
+            
+            print(f"\nSelected option: {option.name}\n{OPTION_TEXT[option]}")
+            return option
+
+        except ValueError:
+            # This triggers if they hit Enter without typing, or typed a letter (like 'A')
+            print(f"\n[!] Error: Please enter a valid number, not '{user_input}'.")
+            
+        except Exception as e:
+            # This triggers if they enter a number that isn't in the menu (like '9')
+            print(f"\n[!] Error: Not a valid menu option {e}.")
 
 def main():
     # This ensures every time the script starts, it prints a clear timestamp
@@ -88,10 +132,7 @@ def main():
     it_token_file    = jon_bulman_utilities.Get_Variable("GOOGLE_FMPGC_IT_TOKEN",config,0)
     membership_credentials   = jon_bulman_utilities.Get_Variable("GOOGLE_FMPGC_MEMBERSHIP_CREDENTIALS",config,0)
     membership_token_file    = jon_bulman_utilities.Get_Variable("GOOGLE_FMPGC_MEMBERSHIP_TOKEN",config,0)
-    #print(f"IT Credentials: [{it_credentials}]")
-    #print(f"IT Token File:[{it_token_file}]")
-    #print(f"Membership Credentials: [{membership_credentials}]")
-    #print(f"Membership Token File:[{membership_token_file}]")
+
     bcc_emails = jon_bulman_utilities.Get_Variable("FMPGC_BCC_EMAILS",config,0)
     print(f"BCC Emails: [{bcc_emails}]")
     # Check the csv file exists
@@ -182,26 +223,22 @@ def main():
         emailBCC = True
         print("Emails will be sent as BCC to the member, and the member will not see the email address of the sender")
 
-    print("Options:")
-    print("-------------")
-    for num, text in OPTIONS.items():
-        print(f"{num}. {text}")
-    print("-------------")
-
     #onceOnly = False
     onlyOnceTemplate = False
     #invite_link = None
     subject = ""
     broadcast_template = "membership_broadcast.html"
-    while ( option := input('Please select required option? >> ')) in ['0', '1', '2', '3', '4','5','6','7','8']:
-        if option == '0':
-            print("Exiting")
+
+    while True:
+        option = get_menu_option()
+        if option == Option.EXIT:
+            print("Goodbye")
             break
-        int_Option = int(option)
-        if int_Option in IT_OPTIONS:    # email from IT
+
+        if option in IT_OPTIONS:    # email from IT
             credentials = it_credentials
             token_file = it_token_file
-            if int_Option in [Option.MEMBER_EXPIRED, Option.ADD_NEW_MEMBER]:
+            if option in CC_MEMBERSHIP_OPTIONS:
                 cc = membership_email
             #    print("Emails will be CC'd to the membership email address")            
         else:                           # email from membership
@@ -213,14 +250,14 @@ def main():
             emailAddress = row["Email"]
 
             if emailBCC:
-                bcc = f"{emailAddress},{bcc_emails}" if int_Option == Option.ADD_NEW_MEMBER else emailAddress
+                bcc = f"{emailAddress},{bcc_emails}" if option == Option.ADD_NEW_MEMBER else emailAddress
                 emailAddress = None
             else:
-                bcc = bcc_emails if int_Option == Option.ADD_NEW_MEMBER else None
+                bcc = bcc_emails if option == Option.ADD_NEW_MEMBER else None
             email_body=""
             print(f"Processing:{index} name:{name} to:{emailAddress} bcc:{bcc}")
             action=True
-            match int_Option:
+            match option:
                 case Option.NEW_MEMBER_INVITE:
                     subject = "FMPGC Invitation to Join!"
                     email_body += template_edit_html(row,membership_invite_to_join_template)
@@ -267,7 +304,6 @@ def main():
                         #print(f"email body {email_body}")
             if action:
                 print(f"Sending email to:{name} to:{emailAddress} bcc:{bcc}")
-                #input("Press Enter to continue...")
                 jon_bulman_utilities.Email_Me(credentials, token_file, emailAddress, subject, email_body,cc, bcc)
 
 def template_edit_html(row, inputhtml: str) -> str:
