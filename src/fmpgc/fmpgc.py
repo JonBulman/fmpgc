@@ -268,13 +268,13 @@ def main():
                     subject = "FMPGC Membership Renewal Invitation!"
                     email_body += template_edit_html(row,membership_invite_to_renew_template)
                 case Option.MEMBER_RENEWED:
-                    subject = "FMPGC Membership Payment received - Welcome Back!"
+                    subject = "FMPGC Membership - Welcome Back!"
                     email_body += template_edit_html(row,membership_renewed_template)
                 case Option.MEMBER_EXPIRING:
                     subject = "FMPGC Membership Expiring"
                     email_body += template_edit_html(row,membership_expiring_template)
                 case Option.ADD_NEW_MEMBER:
-                    subject = "FMPGC Payment Received - Welcome to FMPGC!"
+                    subject = "Welcome to FMPGC!"
                     email_body += template_edit_html(row,membership_new_template)
                 case Option.MEMBER_EXPIRED:
                     subject = "FMPGC Membership Expired - Sorry to see you go!"
