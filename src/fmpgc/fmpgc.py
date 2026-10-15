@@ -181,7 +181,7 @@ def main():
     template_files = {
         "expired": "membership_expired_template.html",
         "expiring": "membership_expiring_template.html",
-        "new": "membership_new_template.html",
+        "new": "membership_add_new_member_template.html",
         "renewed": "membership_renewed_template.html",
         "payment_request": "membership_payment_request_template.html",
         "invite_to_renew": "membership_invite_to_renew_template.html",
@@ -200,7 +200,7 @@ def main():
 
     membership_expired_template          = templates["expired"]
     membership_expiring_template         = templates["expiring"]
-    membership_new_template              = templates["new"]
+    membership_add_new_member_template   = templates["new"]
     membership_renewed_template          = templates["renewed"]
     membership_invite_to_renew_template  = templates["invite_to_renew"]
     membership_invite_to_join_template   = templates["invite_to_join"]
@@ -275,7 +275,7 @@ def main():
                     email_body += template_edit_html(row,membership_expiring_template)
                 case Option.ADD_NEW_MEMBER:
                     subject = "Welcome to FMPGC!"
-                    email_body += template_edit_html(row,membership_new_template)
+                    email_body += template_edit_html(row,membership_add_new_member_template)
                 case Option.MEMBER_EXPIRED:
                     subject = "FMPGC Membership Expired - Sorry to see you go!"
                     email_body += template_edit_html(row,membership_expired_template)
