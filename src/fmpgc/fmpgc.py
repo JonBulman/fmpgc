@@ -16,8 +16,9 @@ from enum import IntEnum
 
 class IT_OPTIONS(IntEnum):
     ADD_NEW_MEMBER = 6
-    MEMBER_EXPIRED = 7
-    TAILORED_TEMPLATE = 8
+    ADD_NEW_MEMBER_EASYTEAM = 7
+    MEMBER_EXPIRED = 8
+    TAILORED_TEMPLATE = 9
 
 class MEMBERSHIP_OPTIONS(IntEnum):
     NEW_MEMBER_INVITE = 1
@@ -28,7 +29,8 @@ class MEMBERSHIP_OPTIONS(IntEnum):
 
 class CC_MEMBERSHIP_OPTIONS(IntEnum):
     ADD_NEW_MEMBER = 6
-    MEMBER_EXPIRED = 7
+    ADD_NEW_MEMBER_EASYTEAM = 7
+    MEMBER_EXPIRED = 8
 
 class Option(IntEnum):
     EXIT = 0
@@ -38,8 +40,9 @@ class Option(IntEnum):
     MEMBER_RENEWED = 4
     MEMBER_EXPIRING = 5
     ADD_NEW_MEMBER = 6
-    MEMBER_EXPIRED = 7
-    TAILORED_TEMPLATE = 8
+    ADD_NEW_MEMBER_EASYTEAM = 7
+    MEMBER_EXPIRED = 8
+    TAILORED_TEMPLATE = 9
 
 OPTION_TEXT = {
     Option.EXIT: "Exit",
@@ -48,7 +51,8 @@ OPTION_TEXT = {
     Option.RENEWAL_PAYMENT: "[Membership-Treasury] Payment Request (Member invite to renew)",
     Option.MEMBER_RENEWED: "[Membership] Member renewed",
     Option.MEMBER_EXPIRING: "[Membership] Member expiring",
-    Option.ADD_NEW_MEMBER: "[IT] Add new member (have paid)",
+    Option.ADD_NEW_MEMBER: "[IT] Add new member. (Manually added to EasyTeam)",
+    Option.ADD_NEW_MEMBER_EASYTEAM: "[IT] Add new member (EasyTeam invite link)",
     Option.MEMBER_EXPIRED: "[IT] Member expired",
     Option.TAILORED_TEMPLATE: "[IT] Tailored Template",
 }
@@ -182,6 +186,7 @@ def main():
         "expired": "membership_expired_template.html",
         "expiring": "membership_expiring_template.html",
         "new": "membership_add_new_member_template.html",
+        "new_easyteam": "membership_add_new_member_easyteam_invite_template.html",
         "renewed": "membership_renewed_template.html",
         "payment_request": "membership_payment_request_template.html",
         "invite_to_renew": "membership_invite_to_renew_template.html",
@@ -201,6 +206,7 @@ def main():
     membership_expired_template          = templates["expired"]
     membership_expiring_template         = templates["expiring"]
     membership_add_new_member_template   = templates["new"]
+    membership_add_new_member_easyteam_invite_template = templates["new_easyteam"]
     membership_renewed_template          = templates["renewed"]
     membership_invite_to_renew_template  = templates["invite_to_renew"]
     membership_invite_to_join_template   = templates["invite_to_join"]
@@ -276,6 +282,9 @@ def main():
                 case Option.ADD_NEW_MEMBER:
                     subject = "Welcome to FMPGC!"
                     email_body += template_edit_html(row,membership_add_new_member_template)
+                case Option.ADD_NEW_MEMBER_EASYTEAM:
+                    subject = "Welcome to FMPGC!"
+                    email_body += template_edit_html(row,membership_add_new_member_easyteam_invite_template)
                 case Option.MEMBER_EXPIRED:
                     subject = "FMPGC Membership Expired - Sorry to see you go!"
                     email_body += template_edit_html(row,membership_expired_template)

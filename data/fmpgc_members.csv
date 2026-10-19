@@ -1,2 +1,2 @@
-Name,Email,Mobile,Date of birth,Gender,Home address,Next of Kin,Next of Kin Contact Number,Membership Type,Rowing Type,CPGA Age Group,Paid,New Member?,Invite Link
-Jon,jonbulman@outlook.com,0123456789,01/01/1900,,,,,,,,,FALSE,
+Name,Email,Mobile,Membership Type,Rowing Type,CPGA Age Group,New Member?,Invite Link
+Jon,jonbulman@outlook.com,0123456789,,,,,https://app.easyteam.online/join?club=712&inv=Ybfm9sVrVgNcBsLlbUmkASkUKb-UiA7a
