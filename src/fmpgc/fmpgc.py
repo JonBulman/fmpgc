@@ -1,10 +1,13 @@
 # Standard library
 from datetime import datetime
+import json
+import logging
 from pathlib import Path
 from zoneinfo import ZoneInfo
 import argparse
 import os
 import sys
+import time
 
 # Third-party
 import pandas as pd
@@ -56,6 +59,35 @@ OPTION_TEXT = {
     Option.MEMBER_EXPIRED: "[IT] Member expired",
     Option.TAILORED_TEMPLATE: "[IT] Tailored Template",
 }
+
+# 1. Configure logging to only output the raw message, and save to a JSON lines file
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(message)s',
+    handlers=[
+        logging.FileHandler('fmpgc_logs.jsonl', mode='a'), # Save to file
+        logging.StreamHandler()                             # Also print to console (optional)
+    ]
+)
+
+# 2. Create the custom logger to satisfy the linter
+logger = logging.getLogger(__name__)
+
+class SystemMonitor:
+    def messagelog(self, to: str, message: str, action: str, result: str) -> None:
+        # 3. Structure all your data, including standard log metadata, as a dictionary
+        log_data = {
+            "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+            "logger_name": logger.name,
+            "level": "INFO",
+            "to": to,
+            "action": action,
+            "result": result,
+            "message": message
+        }
+        
+        # 4. Convert the dictionary to a JSON string and log it using your custom logger
+        logger.info(json.dumps(log_data))
 
 def get_menu_option() -> Option:
     while True:  # Keep looping until they give a valid answer
@@ -229,6 +261,9 @@ def main():
         emailBCC = True
         print("Emails will be sent as BCC to the member, and the member will not see the email address of the sender")
 
+    # setup message log
+    message_log = SystemMonitor()
+
     #onceOnly = False
     onlyOnceTemplate = False
     #invite_link = None
@@ -242,12 +277,14 @@ def main():
             break
 
         if option in IT_OPTIONS:    # email from IT
+            print("Emails will be sent from the IT email address")
             credentials = it_credentials
             token_file = it_token_file
             if option in CC_MEMBERSHIP_OPTIONS:
                 cc = membership_email
             #    print("Emails will be CC'd to the membership email address")            
         else:                           # email from membership
+            print("Emails will be sent from the Membership email address")
             credentials = membership_credentials
             token_file = membership_token_file
 
@@ -315,6 +352,12 @@ def main():
                 print(f"Sending email to:{name} to:{emailAddress} bcc:{bcc}")
                 jon_bulman_utilities.Email_Me(credentials, token_file, emailAddress, subject, email_body,cc, bcc)
 
+                message_log.messagelog(
+                    str(emailAddress),
+                    subject,
+                    action=option.name,
+                    result="SUCCESS"
+                )
 def template_edit_html(row, inputhtml: str) -> str:
     body = inputhtml
 
