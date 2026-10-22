@@ -291,12 +291,16 @@ def main():
         for index, row in csvData.iterrows():
             name = row["Name"]
             emailAddress = row["Email"]
+            membershipType = row["Membership Type"]
 
             if emailBCC:
                 bcc = f"{emailAddress},{bcc_emails}" if option == Option.ADD_NEW_MEMBER else emailAddress
                 emailAddress = None
             else:
-                bcc = bcc_emails if option == Option.ADD_NEW_MEMBER else None
+                bcc = None
+                # only bcc to FMPGC_BCC_EMAILS if not FXU or blank (and add new member)
+                if membershipType != "Concessionary (FXU)" and membershipType != "":
+                    bcc = bcc_emails if option == Option.ADD_NEW_MEMBER or option == Option.ADD_NEW_MEMBER_EASYTEAM else None
             email_body=""
             print(f"Processing:{index} name:{name} to:{emailAddress} bcc:{bcc}")
             action=True
