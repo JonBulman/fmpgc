@@ -66,7 +66,7 @@ logging.basicConfig(
     format='%(message)s',
     handlers=[
         logging.FileHandler('fmpgc_logs.jsonl', mode='a'), # Save to file
-        logging.StreamHandler()                             # Also print to console (optional)
+        #logging.StreamHandler()                             # Also print to console (optional)
     ]
 )
 
@@ -85,9 +85,11 @@ class SystemMonitor:
             "result": result,
             "message": message
         }
+        print(f"Log: {to} | Action: {action} | Result: {result} | Message: {message}")
         
         # 4. Convert the dictionary to a JSON string and log it using your custom logger
         logger.info(json.dumps(log_data))
+        input("Press Enter to continue...")  # Pause for user input
 
 def get_menu_option() -> Option:
     while True:  # Keep looping until they give a valid answer
@@ -108,7 +110,7 @@ def get_menu_option() -> Option:
             # Try to match it to a valid Option
             option = Option(i)
             
-            print(f"\nSelected option: {option.name}\n{OPTION_TEXT[option]}")
+            #print(f"\nSelected option: {option.name}\n{OPTION_TEXT[option]}")
             return option
 
         except ValueError:
@@ -168,7 +170,9 @@ def main():
     it_token_file    = jon_bulman_utilities.Get_Variable("GOOGLE_FMPGC_IT_TOKEN",config,0)
     membership_credentials   = jon_bulman_utilities.Get_Variable("GOOGLE_FMPGC_MEMBERSHIP_CREDENTIALS",config,0)
     membership_token_file    = jon_bulman_utilities.Get_Variable("GOOGLE_FMPGC_MEMBERSHIP_TOKEN",config,0)
-
+    
+    fmpgc_it_email = jon_bulman_utilities.Get_Variable("FMPGC_IT_EMAIL",config,0)
+    fmpgc_membership_email = jon_bulman_utilities.Get_Variable("FMPGC_MEMBERSHIP_EMAIL",config,0)
     bcc_emails = jon_bulman_utilities.Get_Variable("FMPGC_BCC_EMAILS",config,0)
     print(f"BCC Emails: [{bcc_emails}]")
     # Check the csv file exists
@@ -277,17 +281,20 @@ def main():
             break
 
         if option in IT_OPTIONS:    # email from IT
-            print("Emails will be sent from the IT email address")
+            #print("Emails will be sent from the IT email address")
             credentials = it_credentials
             token_file = it_token_file
+            from_email = fmpgc_it_email
             if option in CC_MEMBERSHIP_OPTIONS:
                 cc = membership_email
             #    print("Emails will be CC'd to the membership email address")            
         else:                           # email from membership
-            print("Emails will be sent from the Membership email address")
+            #print("Emails will be sent from the Membership email address")
+            from_email = fmpgc_membership_email
             credentials = membership_credentials
             token_file = membership_token_file
 
+        count = 0
         for index, row in csvData.iterrows():
             name = row["Name"]
             emailAddress = row["Email"]
@@ -302,7 +309,8 @@ def main():
                 if membershipType != "Concessionary (FXU)" and membershipType != "":
                     bcc = bcc_emails if option == Option.ADD_NEW_MEMBER or option == Option.ADD_NEW_MEMBER_EASYTEAM else None
             email_body=""
-            print(f"Processing:{index} name:{name} to:{emailAddress} bcc:{bcc}")
+            count += 1
+            #print(f"Processing:{index} name:{name} to:{emailAddress} bcc:{bcc}")
             action=True
             match option:
                 case Option.NEW_MEMBER_INVITE:
@@ -341,7 +349,7 @@ def main():
                     except OSError as e:
                         print(f"Error reading template file: [{e}]")
                         sys.exit(1)
-                    print(f"Processing:{index} name:{name} to:{emailAddress} bcc:{bcc}")
+                    #print(f"Processing:{index} name:{name} to:{emailAddress} bcc:{bcc}")
                     print(f"Template: {broadcast_template}")
                     if onlyOnceTemplate == False:
                         subject = input('Enter Subject -> ')
@@ -353,15 +361,17 @@ def main():
                         email_body += template_edit_html(row,str(tailored_template))
                         #print(f"email body {email_body}")
             if action:
-                print(f"Sending email to:{name} to:{emailAddress} bcc:{bcc}")
-                jon_bulman_utilities.Email_Me(credentials, token_file, emailAddress, subject, email_body,cc, bcc)
-
+                #print(f"Sending email to:{name} to:{emailAddress} bcc:{bcc}")
+                email_result=jon_bulman_utilities.Email_Me(credentials, token_file, emailAddress, subject, email_body,cc, bcc)
+                fromcc = f"from:{from_email} cc:{cc}" if cc is not None else f"from:{from_email}"
                 message_log.messagelog(
                     str(emailAddress),
-                    subject,
+                    fromcc,
                     action=option.name,
-                    result="SUCCESS"
+                    result=email_result
                 )
+        print(f"Processed {count} emails for option: {option.name}\n")
+
 def template_edit_html(row, inputhtml: str) -> str:
     body = inputhtml
 
