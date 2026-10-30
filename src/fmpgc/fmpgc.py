@@ -89,7 +89,7 @@ class SystemMonitor:
         
         # 4. Convert the dictionary to a JSON string and log it using your custom logger
         logger.info(json.dumps(log_data))
-        input("Press Enter to continue...")  # Pause for user input
+        #input("Press Enter to continue...")  # Pause for user input
 
 def get_menu_option() -> Option:
     while True:  # Keep looping until they give a valid answer
