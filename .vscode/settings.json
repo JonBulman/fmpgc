@@ -1,8 +1,5 @@
 {
-    "python.defaultInterpreterPath": "/Users/Jon/.venvs/automation/bin/python",
     "python.analysis.extraPaths": [
-        "/Users/Jon/.venvs/automation/lib/python3.13/site-packages",
-        "/Users/Jon/Documents/GitHub/fmpgc/src",
-        "/Users/Jon/Documents/GitHub/Utilities/jon_bulman_utilities"
+        "/Users/Jon/Documents/GitHub/Utilities"
     ]
 }

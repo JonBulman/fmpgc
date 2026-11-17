@@ -373,7 +373,7 @@ def main():
                         #print(f"email body {email_body}")
             if action:
                 #print(f"Sending email to:{name} to:{emailAddress} bcc:{bcc}")
-                email_result=jon_bulman_utilities.Email_Me(credentials, token_file, emailAddress, subject, email_body,cc, bcc, attachment)
+                email_result=jon_bulman_utilities.send_email(credentials, token_file, emailAddress, subject, email_body,cc, bcc, attachment)
 
                 fromcc = f"from:{from_email}"
                 if cc:
