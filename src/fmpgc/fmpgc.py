@@ -317,6 +317,9 @@ def main():
                     bcc = None
             email_body=""
             count += 1
+            if count%60 == 0:
+                time.sleep(60)  # Sleep for 60 seconds after every 60 emails - this is to avoid hitting the Gmail API rate limit
+
             #print(f"Processing:{index} name:{name} to:{emailAddress} bcc:{bcc}")
             action=True
             match option:
