@@ -272,6 +272,7 @@ def main():
     onlyOnceTemplate = False
     #invite_link = None
     subject = ""
+    attachment = ""
     broadcast_template = "membership_broadcast.html"
 
     while True:
@@ -301,13 +302,19 @@ def main():
             membershipType = row["Membership Type"]
 
             if emailBCC:
-                bcc = f"{emailAddress},{bcc_emails}" if option == Option.ADD_NEW_MEMBER else emailAddress
+                if option in (Option.ADD_NEW_MEMBER, Option.ADD_NEW_MEMBER_EASYTEAM):
+                    bcc = f"{emailAddress},{bcc_emails}"
+                else:
+                    bcc = emailAddress
                 emailAddress = None
             else:
-                bcc = None
-                # only bcc to FMPGC_BCC_EMAILS if not FXU or blank (and add new member)
-                if membershipType != "Concessionary (FXU)" and membershipType != "":
-                    bcc = bcc_emails if option == Option.ADD_NEW_MEMBER or option == Option.ADD_NEW_MEMBER_EASYTEAM else None
+                if (
+                    membershipType not in ("Concessionary (FXU)", "")
+                    and option in (Option.ADD_NEW_MEMBER, Option.ADD_NEW_MEMBER_EASYTEAM)
+                ):
+                    bcc = bcc_emails
+                else:
+                    bcc = None
             email_body=""
             count += 1
             #print(f"Processing:{index} name:{name} to:{emailAddress} bcc:{bcc}")
@@ -353,6 +360,7 @@ def main():
                     print(f"Template: {broadcast_template}")
                     if onlyOnceTemplate == False:
                         subject = input('Enter Subject -> ')
+                        attachment = input('Enter Attachment (blank for none) -> ')                        
                     onlyOnceTemplate = True
                     if subject == "" :
                         action = False
@@ -362,8 +370,14 @@ def main():
                         #print(f"email body {email_body}")
             if action:
                 #print(f"Sending email to:{name} to:{emailAddress} bcc:{bcc}")
-                email_result=jon_bulman_utilities.Email_Me(credentials, token_file, emailAddress, subject, email_body,cc, bcc)
-                fromcc = f"from:{from_email} cc:{cc}" if cc is not None else f"from:{from_email}"
+                email_result=jon_bulman_utilities.Email_Me(credentials, token_file, emailAddress, subject, email_body,cc, bcc, attachment)
+
+                fromcc = f"from:{from_email}"
+                if cc:
+                    fromcc += f" cc:{cc}"
+                if bcc:
+                    fromcc += f" bcc:{bcc}"
+
                 message_log.messagelog(
                     str(emailAddress),
                     fromcc,
