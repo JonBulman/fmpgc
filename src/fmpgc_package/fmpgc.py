@@ -1,7 +1,5 @@
 # Standard library
 from datetime import datetime
-import json
-import logging
 from pathlib import Path
 from zoneinfo import ZoneInfo
 import argparse
@@ -12,116 +10,12 @@ import time
 # Third-party
 import pandas as pd
 
-from enum import IntEnum
-
 from fmpgc_package import setup_environment
 from fmpgc_package import Load_Config
 from fmpgc_package import Get_Variable
 from fmpgc_package import send_email
-
-class IT_OPTIONS(IntEnum):
-    ADD_NEW_MEMBER = 6
-    ADD_NEW_MEMBER_EASYTEAM = 7
-    MEMBER_EXPIRED = 8
-    TAILORED_TEMPLATE = 9
-
-class MEMBERSHIP_OPTIONS(IntEnum):
-    NEW_MEMBER_INVITE = 1
-    JOINING_MEMBER_PAYMENT = 2
-    RENEWAL_PAYMENT = 3
-    MEMBER_RENEWED = 4
-    MEMBER_EXPIRING = 5
-
-class CC_MEMBERSHIP_OPTIONS(IntEnum):
-    ADD_NEW_MEMBER = 6
-    ADD_NEW_MEMBER_EASYTEAM = 7
-    MEMBER_EXPIRED = 8
-
-class Option(IntEnum):
-    EXIT = 0
-    NEW_MEMBER_INVITE = 1
-    JOINING_MEMBER_PAYMENT = 2
-    RENEWAL_PAYMENT = 3
-    MEMBER_RENEWED = 4
-    MEMBER_EXPIRING = 5
-    ADD_NEW_MEMBER = 6
-    ADD_NEW_MEMBER_EASYTEAM = 7
-    MEMBER_EXPIRED = 8
-    TAILORED_TEMPLATE = 9
-
-OPTION_TEXT = {
-    Option.EXIT: "Exit",
-    Option.NEW_MEMBER_INVITE: "[Membership] New Member invite to join (personal details request)",
-    Option.JOINING_MEMBER_PAYMENT: "[Membership-Treasury] Payment Request (Joining member)",
-    Option.RENEWAL_PAYMENT: "[Membership-Treasury] Payment Request (Member invite to renew)",
-    Option.MEMBER_RENEWED: "[Membership] Member renewed",
-    Option.MEMBER_EXPIRING: "[Membership] Member expiring",
-    Option.ADD_NEW_MEMBER: "[IT] Add new member. (Manually added to EasyTeam)",
-    Option.ADD_NEW_MEMBER_EASYTEAM: "[IT] Add new member (EasyTeam invite link)",
-    Option.MEMBER_EXPIRED: "[IT] Member expired",
-    Option.TAILORED_TEMPLATE: "[IT] Tailored Template",
-}
-
-# 1. Configure logging to only output the raw message, and save to a JSON lines file
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(message)s',
-    handlers=[
-        logging.FileHandler('fmpgc_logs.jsonl', mode='a'), # Save to file
-        #logging.StreamHandler()                             # Also print to console (optional)
-    ]
-)
-
-# 2. Create the custom logger to satisfy the linter
-logger = logging.getLogger(__name__)
-
-class SystemMonitor:
-    def messagelog(self, to: str, message: str, action: str, result: str) -> None:
-        # 3. Structure all your data, including standard log metadata, as a dictionary
-        log_data = {
-            "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
-            "logger_name": logger.name,
-            "level": "INFO",
-            "to": to,
-            "action": action,
-            "result": result,
-            "message": message
-        }
-        print(f"Log: {to} | Action: {action} | Result: {result} | Message: {message}")
-        
-        # 4. Convert the dictionary to a JSON string and log it using your custom logger
-        logger.info(json.dumps(log_data))
-        #input("Press Enter to continue...")  # Pause for user input
-
-def get_menu_option() -> Option:
-    while True:  # Keep looping until they give a valid answer
-        print("\nOptions:")
-        print("-------------")
-
-        for option, description in OPTION_TEXT.items():
-            print(f"{option.value}. {description}")
-
-        print("-------------")
-
-        user_input = input("Select option: ")
-        
-        try:
-            # Try to convert their input to a number
-            i = int(user_input)
-            
-            # Try to match it to a valid Option
-            option = Option(i)
-            
-            #print(f"\nSelected option: {option.name}\n{OPTION_TEXT[option]}")
-            return option
-
-        except ValueError:
-            # This triggers if they hit Enter without typing, or typed a letter (like 'A')
-            print(f"\n[!] Error: Please enter a valid number, not '{user_input}'.")
-            
-        except Exception as e:
-            # This triggers if they enter a number that isn't in the menu (like '9')
-            print(f"\n[!] Error: Not a valid menu option {e}.")
+from fmpgc_package import get_menu_option
+from fmpgc_package import fmpgc_classes
 
 def main():
     # This ensures every time the script starts, it prints a clear timestamp
@@ -268,7 +162,7 @@ def main():
         print("Emails will be sent as BCC to the member, and the member will not see the email address of the sender")
 
     # setup message log
-    message_log = SystemMonitor()
+    message_log = fmpgc_classes.SystemMonitor()
 
     #onceOnly = False
     onlyOnceTemplate = False
@@ -279,16 +173,16 @@ def main():
 
     while True:
         option = get_menu_option()
-        if option == Option.EXIT:
+        if option == fmpgc_classes.Option.EXIT:
             print("Goodbye")
             break
 
-        if option in IT_OPTIONS:    # email from IT
+        if option in fmpgc_classes.IT_OPTIONS:    # email from IT
             #print("Emails will be sent from the IT email address")
             credentials = it_credentials
             token_file = it_token_file
             from_email = fmpgc_it_email
-            if option in CC_MEMBERSHIP_OPTIONS:
+            if option in fmpgc_classes.CC_MEMBERSHIP_OPTIONS:
                 cc = membership_email
             #    print("Emails will be CC'd to the membership email address")            
         else:                           # email from membership
@@ -304,7 +198,7 @@ def main():
             membershipType = row["Membership Type"]
 
             if emailBCC:
-                if option in (Option.ADD_NEW_MEMBER, Option.ADD_NEW_MEMBER_EASYTEAM):
+                if option in (fmpgc_classes.Option.ADD_NEW_MEMBER, fmpgc_classes.Option.ADD_NEW_MEMBER_EASYTEAM):
                     bcc = f"{emailAddress},{bcc_emails}"
                 else:
                     bcc = emailAddress
@@ -312,7 +206,7 @@ def main():
             else:
                 if (
                     membershipType not in ("Concessionary (FXU)", "")
-                    and option in (Option.ADD_NEW_MEMBER, Option.ADD_NEW_MEMBER_EASYTEAM)
+                    and option in (fmpgc_classes.Option.ADD_NEW_MEMBER, fmpgc_classes.Option.ADD_NEW_MEMBER_EASYTEAM)
                 ):
                     bcc = bcc_emails
                 else:
@@ -325,31 +219,31 @@ def main():
             #print(f"Processing:{index} name:{name} to:{emailAddress} bcc:{bcc}")
             action=True
             match option:
-                case Option.NEW_MEMBER_INVITE:
+                case fmpgc_classes.Option.NEW_MEMBER_INVITE:
                     subject = "FMPGC Invitation to Join!"
                     email_body += template_edit_html(row,membership_invite_to_join_template)
-                case Option.JOINING_MEMBER_PAYMENT:
+                case fmpgc_classes.Option.JOINING_MEMBER_PAYMENT:
                     subject = "FMPGC Membership Payment Request!"
                     email_body += template_edit_html(row,membership_payment_request_template)
-                case Option.RENEWAL_PAYMENT:
+                case fmpgc_classes.Option.RENEWAL_PAYMENT:
                     subject = "FMPGC Membership Renewal Invitation!"
                     email_body += template_edit_html(row,membership_invite_to_renew_template)
-                case Option.MEMBER_RENEWED:
+                case fmpgc_classes.Option.MEMBER_RENEWED:
                     subject = "FMPGC Membership - Welcome Back!"
                     email_body += template_edit_html(row,membership_renewed_template)
-                case Option.MEMBER_EXPIRING:
+                case fmpgc_classes.Option.MEMBER_EXPIRING:
                     subject = "FMPGC Membership Expiring"
                     email_body += template_edit_html(row,membership_expiring_template)
-                case Option.ADD_NEW_MEMBER:
+                case fmpgc_classes.Option.ADD_NEW_MEMBER:
                     subject = "Welcome to FMPGC!"
                     email_body += template_edit_html(row,membership_add_new_member_template)
-                case Option.ADD_NEW_MEMBER_EASYTEAM:
+                case fmpgc_classes.Option.ADD_NEW_MEMBER_EASYTEAM:
                     subject = "Welcome to FMPGC!"
                     email_body += template_edit_html(row,membership_add_new_member_easyteam_invite_template)
-                case Option.MEMBER_EXPIRED:
+                case fmpgc_classes.Option.MEMBER_EXPIRED:
                     subject = "FMPGC Membership Expired - Sorry to see you go!"
                     email_body += template_edit_html(row,membership_expired_template)
-                case Option.TAILORED_TEMPLATE:
+                case fmpgc_classes.Option.TAILORED_TEMPLATE:
                     tmpl = "membership_broadcast.html"
                     if onlyOnceTemplate == False:
                         tmpl = input('Enter template name (defaults to membership_broadcast.html)-> ')

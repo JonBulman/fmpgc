@@ -14,7 +14,7 @@ from email import encoders
     
 
 # If modifying these scopes, delete the file token.json.
-SCOPES = ["https://www.googleapis.com/auth/gmail.compose"]
+SCOPES = ["https://www.googleapis.com/auth/gmail.send"]
 
 def send_email(credentials, token_file, to, subject, body,
              cc=None, bcc=None, attachment=None):

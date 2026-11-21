@@ -1,79 +1,344 @@
-# Membership Communication & Administration System
+# FMPGC Membership Communication & Administration System
 
-A Python-based email automation tool for managing membership communications for Flushing & Mylor Pilot Gig Club (FMPGC).
+A Python-based email automation tool for managing membership communications for **Flushing & Mylor Pilot Gig Club (FMPGC)**.
 
-The application reads member information from a CSV file, merges member-specific data into HTML email templates, and sends personalised emails using the Gmail API. It supports common membership administration activities such as new member invitations, renewal reminders, payment requests, membership expiry notifications, and customised bulk communications.
+The application reads member details from a CSV file, merges member-specific data into HTML email templates, and sends personalised emails via the Gmail API. It supports routine membership administration—including new member invitations, payment requests, renewal reminders, onboarding emails, expiry notifications, and custom bulk broadcasts.
 
----
+## Table of Contents
+
+* [Features](#features)
+* [Requirements](#requirements)
+* [Installation](#installation)
+* [Google OAuth & Gmail API Setup](#google-oauth--gmail-api-setup)
+* [Configuration](#configuration)
+* [Membership CSV Format](#membership-csv-format)
+* [Usage](#usage)
+  * [Running the Application](#running-the-application)
+  * [Command-Line Arguments](#command-line-arguments)
+  * [Menu Options](#menu-options)
+  * [Email Delivery Modes](#email-delivery-modes)
+  * [Tailored Broadcast Emails](#tailored-broadcast-emails)
+* [Email Templates](#email-templates)
+* [Logging & Rate Limiting](#logging--rate-limiting)
+* [Project Structure](#project-structure)
+* [Security](#security)
+* [Future Enhancements](#future-enhancements)
+* [Licence & Author](#licence--author)
 
 ## Features
 
 ### Membership Communications
 
-- Invite prospective members to join
-- Request membership payments
-- Send membership renewal invitations
-- Confirm membership renewals
-- Notify members of upcoming membership expiry
-- Notify members of expired memberships
+* Invite prospective members to join
+* Request membership payments
+* Send membership renewal invitations
+* Confirm completed renewals
+* Notify members of upcoming membership expiry
+* Notify members of expired memberships
 
 ### IT Administration
 
-- Welcome newly added members
-- Send EasyTeam invitation emails
-- Manage member onboarding communications
-- Notify expired members of account changes
+* Welcome newly added members
+* Send EasyTeam invitation emails
+* Automatically CC the membership inbox on relevant IT onboarding actions
+* Manage member onboarding and account change notifications
 
-### Personalisation
+### Template Personalisation
 
-Email templates support variable substitution using any column from the membership CSV file. The variable name is defined in the header on row one for each column.
+Email templates support dynamic variable substitution using any column header from row one of the membership CSV file:
 
-For example:
-
-...
+```html
 <p>Hello {{Name}},</p>
-<p>Your membership email is {{Email}}.</p>
-...
+<p>Your registered membership email is {{Email}}.</p>
+```
 
-All placeholders are automatically replaced with values from the corresponding member record.
-
----
+All `{{ColumnName}}` placeholders are automatically replaced with the corresponding value from each member's row.
 
 ## Requirements
 
-- Python 3.10 or later
-- Gmail API credentials
-- Google OAuth token files
-- Member data in CSV format (fmpgc_members.csv)
-
----
+* **Python 3.10 or later** (required for `match`/`case` syntax and `zoneinfo`)
+* **Gmail API credentials** (OAuth 2.0 client JSON files for the IT and Membership Google accounts)
+* **Google OAuth token files** (generated automatically on first sign-in)
+* **Member data CSV file** (`data/fmpgc_members.csv`)
 
 ## Installation
 
-### Clone the Repository
+### 1. Clone the Repository
 
+```bash
 git clone https://github.com/JonBulman/fmpgc.git
 cd fmpgc
+```
 
-### Create a Virtual Environment
+### 2. Create and Activate a Virtual Environment
 
-python -m venv .venv
+**macOS / Linux:**
+
+```bash
+python3 -m venv .venv
 source .venv/bin/activate
+```
 
-### Install Dependencies
+**Windows (PowerShell):**
 
+```powershell
+python -m venv .venv
+.venv\Scripts\Activate.ps1
+```
+
+### 3. Install Dependencies
+
+Install dependencies directly:
+
+```bash
 pip install -r requirements.txt
+```
 
-or
+Or install as a package (recommended to enable the `fmpgc` CLI command):
 
+```bash
 pip install .
+```
 
----
+## Google OAuth & Gmail API Setup
+
+Because the application sends emails via the Gmail API from two accounts (IT and Membership), you need OAuth 2.0 Desktop App credentials from Google Cloud Console.
+
+### 1. Create a Google Cloud Project
+
+1. Go to the [Google Cloud Console](https://console.cloud.google.com/).
+2. Click the project selector in the top-left bar and choose **New Project**.
+3. Give the project a recognisable name (e.g., `FMPGC Membership Mailer`) and click **Create**.
+4. Make sure the newly created project is selected.
+
+### 2. Enable the Gmail API
+
+1. In the left navigation menu, go to **APIs & Services > Library**.
+2. Search for **Gmail API**.
+3. Click **Gmail API** and select **Enable**.
+
+### 3. Configure the OAuth Consent Screen
+
+1. Go to **Google Auth Platform** (or **APIs & Services > OAuth consent screen**).
+2. Click **Get Started** (if not yet configured) and fill in the app details:
+   * **App name:** `FMPGC Membership Mailer`
+   * **User support email:** Your IT or Membership email address
+   * **Audience:** Select **External** (unless using a Google Workspace organisation account, in which case choose **Internal**)
+   * **Contact information:** Your IT admin email address
+3. Under **Audience > Test users** (required while the app is in **Testing** status), click **Add users** and add both the **IT email address** and the **Membership email address**.
+4. Under **Data Access** (or **Scopes**), add the Gmail API scope required for sending emails (e.g., `https://www.googleapis.com/auth/gmail.send`).
+5. Save your changes.
+
+### 4. Create OAuth 2.0 Client Credentials
+
+1. Go to **Google Auth Platform > Clients** (or **APIs & Services > Credentials**).
+2. Click **Create Client** (or **+ Create Credentials > OAuth client ID**).
+3. Set **Application type** to **Desktop app**.
+4. Give it a name (e.g., `FMPGC Desktop Client`) and click **Create**.
+5. Click **Download JSON** to save the credentials file to your computer.
+
+> **Tip:** Both the IT and Membership accounts can use copies of the same Desktop OAuth client JSON file (provided both email addresses are listed as test users), or you can create a separate Google Cloud project/client for each account. However, each account **must** point to its own distinct token file in `settings.json`.
+
+### 5. Place Credentials and Generate OAuth Tokens
+
+1. Rename/copy the downloaded JSON file(s) to match the paths configured in `data/settings.json` (for example, `credentials_it.json` and `credentials_membership.json`).
+2. The first time you send an email from either the **Membership** or **IT** account, a browser window will open asking you to sign in to Google and grant permission:
+   * Sign in with the **corresponding account** (IT account for IT menu options; Membership account for Membership menu options).
+   * If you see a *"Google hasn't verified this app"* warning (normal for internal/testing apps), click **Advanced > Go to FMPGC Membership Mailer (unsafe)** and grant access.
+3. Once authorised, the application will automatically create `token_it.json` and/or `token_membership.json` for future runs.
+
+> **Note on Token Expiry:** While a Google OAuth app with an **External** audience remains in **Testing** mode, refresh tokens expire after **7 days**. If authentication fails with an `invalid_grant` error, delete the expired `token_*.json` file and re-run the script to re-authorise.
+
+## Configuration
+
+By default, the application loads its configuration from `data/settings.json`.
+
+### Example `data/settings.json`
+
+```json
+{
+    "GOOGLE_FMPGC_IT_CREDENTIALS": "credentials_it.json",
+    "GOOGLE_FMPGC_IT_TOKEN": "token_it.json",
+    "GOOGLE_FMPGC_MEMBERSHIP_CREDENTIALS": "credentials_membership.json",
+    "GOOGLE_FMPGC_MEMBERSHIP_TOKEN": "token_membership.json",
+    "FMPGC_IT_EMAIL": "it@fmpgc.org",
+    "FMPGC_MEMBERSHIP_EMAIL": "membership@fmpgc.org",
+    "FMPGC_BCC_EMAILS": "committee@fmpgc.org"
+}
+```
+
+### Configuration Variables
+
+| Setting | Description |
+| ----- | ----- |
+| `GOOGLE_FMPGC_IT_CREDENTIALS` | Path to Gmail API credentials JSON for the IT account |
+| `GOOGLE_FMPGC_IT_TOKEN` | Path to OAuth token file for the IT account |
+| `GOOGLE_FMPGC_MEMBERSHIP_CREDENTIALS` | Path to Gmail API credentials JSON for the Membership account |
+| `GOOGLE_FMPGC_MEMBERSHIP_TOKEN` | Path to OAuth token file for the Membership account |
+| `FMPGC_IT_EMAIL` | Sender email address for IT administration emails |
+| `FMPGC_MEMBERSHIP_EMAIL` | Sender email address for Membership emails |
+| `FMPGC_BCC_EMAILS` | Committee email address(es) BCC'd on applicable new member emails |
+
+## Membership CSV Format
+
+The application reads member records from `<data-folder>/fmpgc_members.csv` using `cp1252` (Windows-1252) encoding and automatically drops completely blank rows.
+
+### Required Columns
+
+The script requires the following column headers to be present in row 1:
+
+| Column | Purpose |
+| ----- | ----- |
+| `Name` | Member's name |
+| `Email` | Member's email address |
+| `Invite Link` | Invitation URL (validated on startup) |
+| `Membership Type` | Member category (used to determine committee BCC rules; e.g., `Concessionary (FXU)` members are excluded from committee BCCs in direct mode) |
+
+Any additional columns added to the CSV are automatically available as `{{ColumnName}}` placeholders in your HTML templates. On startup, the script prints the full list of available template variables.
+
+### Example CSV
+
+```csv
+Name,Email,Invite Link,Membership Type
+Jane Doe,jane@example.com,https://example.com/invite/123,Adult
+John Smith,john@example.com,https://example.com/invite/456,Concessionary (FXU)
+```
+
+## Usage
+
+### Running the Application
+
+If installed as a package:
+
+```bash
+fmpgc
+```
+
+Or run directly with Python:
+
+```bash
+python src/fmpgc_package/fmpgc.py
+```
+
+### Command-Line Arguments
+
+| Argument | Short | Description | Default |
+| ----- | ----- | ----- | ----- |
+| `--data-folder` | `-d` | Directory containing CSV and HTML templates *(include trailing slash)* | `data/` |
+| `--config-file` | `-c` | Path to the JSON configuration file | `data/settings.json` |
+| `--membershipemail` | `-m` | Membership email address used for CCing on relevant IT actions | `fmpgcmembership@gmail.com` |
+
+**Example:**
+
+```bash
+fmpgc \
+    --data-folder data/ \
+    --config-file data/settings.json \
+    --membershipemail membership@fmpgc.org
+```
+
+### Menu Options
+
+When launched, the application prompts for the delivery mode (Direct vs. BCC) and displays an interactive menu:
+
+#### Membership Functions *(sent from `FMPGC_MEMBERSHIP_EMAIL`)*
+
+| Option | Description | Default Subject |
+| ----- | ----- | ----- |
+| `1` | New Member Invite | `FMPGC Invitation to Join!` |
+| `2` | Membership Payment Request | `FMPGC Membership Payment Request!` |
+| `3` | Membership Renewal Invitation | `FMPGC Membership Renewal Invitation!` |
+| `4` | Member Renewed | `FMPGC Membership - Welcome Back!` |
+| `5` | Member Expiring | `FMPGC Membership Expiring` |
+
+#### IT Functions *(sent from `FMPGC_IT_EMAIL`)*
+
+| Option | Description | Default Subject |
+| ----- | ----- | ----- |
+| `6` | Add New Member | `Welcome to FMPGC!` |
+| `7` | Add New Member (EasyTeam Invite) | `Welcome to FMPGC!` |
+| `8` | Member Expired | `FMPGC Membership Expired - Sorry to see you go!` |
+
+#### Custom & System Functions
+
+| Option | Description |
+| ----- | ----- |
+| `9` | Tailored Template Broadcast |
+| `0` | Exit |
+
+### Email Delivery Modes
+
+At startup, you will be prompted:
+
+```text
+Send Email as BCC to recipient? (non-blank is yes)? ->
+```
+
+* **Direct Delivery (leave blank):** Emails are addressed directly to each recipient in the `To` field. For `Add New Member` and `Add New Member (EasyTeam Invite)`, `FMPGC_BCC_EMAILS` is automatically BCC'd unless the member's `Membership Type` is `Concessionary (FXU)` or blank.
+* **BCC Delivery (enter any character):** Recipients are placed in the `BCC` field rather than `To`. Ideal for newsletters, club announcements, and bulk communications.
+
+### Tailored Broadcast Emails
+
+Selecting option **9 (Tailored Template Broadcast)** lets you send custom bulk emails:
+
+1. Choose any HTML template in your data folder (defaults to `membership_broadcast.html`).
+2. Enter a custom email subject (leaving the subject blank skips sending).
+3. Optionally specify a file path for an attachment.
+
+Typical use cases include AGM notifications, club newsletters, safety notices, event announcements, and training updates.
+
+## Email Templates
+
+The following HTML templates are expected in the `data/` directory:
+
+| Template File | Purpose |
+| ----- | ----- |
+| `membership_invite_to_join_template.html` | Invite a prospective member to join |
+| `membership_payment_request_template.html` | Request membership payment |
+| `membership_invite_to_renew_template.html` | Send a renewal invitation |
+| `membership_renewed_template.html` | Confirm a completed renewal |
+| `membership_expiring_template.html` | Notify of upcoming membership expiry |
+| `membership_expired_template.html` | Notify of expired membership |
+| `membership_add_new_member_template.html` | Welcome email for new members |
+| `membership_add_new_member_easyteam_invite_template.html` | Welcome email with EasyTeam invitation |
+| `membership_broadcast.html` | Default template for custom broadcasts |
+
+## Logging & Rate Limiting
+
+### Activity Logs
+
+All email activity is recorded in **JSON Lines** format in `fmpgc_logs.jsonl` (alongside general application logs in `fmpgc.log`).
+
+Example `fmpgc_logs.jsonl` entry:
+
+```json
+{
+    "timestamp": "2026-11-21T12:00:00Z",
+    "logger_name": "fmpgc",
+    "level": "INFO",
+    "to": "user@example.com",
+    "action": "MEMBER_RENEWED",
+    "result": "Success",
+    "message": "from:membership@fmpgc.org"
+}
+```
+
+Each entry captures the timestamp, recipient, action performed, delivery result, sender account, and any CC/BCC recipients.
+
+### Gmail API Rate-Limit Protection
+
+To avoid hitting Gmail API rate limits during large mailings, the script automatically pauses for **60 seconds after every 60 emails**:
+
+```python
+if count % 60 == 0:
+    time.sleep(60)
+```
 
 ## Project Structure
 
+```text
 .
-├── data
+├── data/
 │   ├── fmpgc_members.csv
 │   ├── membership_add_new_member_easyteam_invite_template.html
 │   ├── membership_add_new_member_template.html
@@ -85,283 +350,43 @@ pip install .
 │   ├── membership_payment_request_template.html
 │   ├── membership_renewed_template.html
 │   └── settings.json
-│
-├── src
-│   └── fmpgc_package
+├── src/
+│   └── fmpgc_package/
 │       ├── __init__.py
 │       ├── config_utils.py
 │       ├── email_utils.py
-│       └── fmpgc.py
-│
-├── pyproject.toml
-├── requirements.txt
+│       ├── fmpgc.py
+│       └── fmpgc_classes.py
+├── fmpgc.log
+├── fmpgc_logs.jsonl
 ├── MANIFEST.in
-└── README.md
-
----
-
-## Configuration
-
-The application loads its configuration from:
-
-data/settings.json
-
-Example:
-{
-    "GOOGLE_FMPGC_IT_CREDENTIALS": "credentials_it.json",
-    "GOOGLE_FMPGC_IT_TOKEN": "token_it.json",
-    "GOOGLE_FMPGC_MEMBERSHIP_CREDENTIALS": "credentials_membership.json",
-    "GOOGLE_FMPGC_MEMBERSHIP_TOKEN": "token_membership.json",
-    "FMPGC_IT_EMAIL": "it@fmpgc.org",
-    "FMPGC_MEMBERSHIP_EMAIL": "membership@fmpgc.org",
-    "FMPGC_BCC_EMAILS": "committee@fmpgc.org"
-}
-
-### Required Configuration Variables
-
-| Setting | Description |
-|----------|------------|
-| GOOGLE_FMPGC_IT_CREDENTIALS | Gmail API credentials for the IT account |
-| GOOGLE_FMPGC_IT_TOKEN | OAuth token for the IT account |
-| GOOGLE_FMPGC_MEMBERSHIP_CREDENTIALS | Gmail API credentials for the Membership account |
-| GOOGLE_FMPGC_MEMBERSHIP_TOKEN | OAuth token for the Membership account |
-| FMPGC_IT_EMAIL | IT sender email address |
-| FMPGC_MEMBERSHIP_EMAIL | Membership sender email address |
-| FMPGC_BCC_EMAILS | Committee BCC recipients |
-
----
-
-## Membership Data
-
-The application requires a CSV file containing member information.
-
-### Required Columns
-
-| Column      |
-|-------------|
-| Name        |
-| Email       |
-
-Additional columns may be added and used within templates.
-
-Example:
-
-| Name     | Email            | 
-|----------|------------------|
-| Jane Doe | jane@example.com |
-
-Any column can be referenced within templates:
-
-{{Name}}
-{{Email}}
-...
-
----
-
-## Running the Application
-
-### Direct Execution
-
-python src/fmpgc_package/fmpgc.py
-
-### Installed Package
-
-fmpgc
-
----
-
-## Command Line Arguments
-
-| Argument          | Short | Description              | Default              |
-|-------------------|-------|--------------------------|----------------------|
-| --data-folder     | -d    | Location of data files   | data/.               |
-| --config-file     | -c    | Configuration file       | data/settings.json   |
-| --membershipemail | -m    | Membership email address | membership@fmpgc.org |
-
-Example:
-
-python fmpgc.py \
-    --data-folder data/ \
-    --config-file data/settings.json \
-    --membershipemail membership@fmpgc.org
-
----
-
-## Menu Options
-
-When launched, the application presents the following menu:
-
-### Membership Functions
-
-| Option | Description                   |
-|--------|-------------------------------|
-| 1      | New Member Invite             |
-| 2      | Membership Payment Request    |
-| 3      | Membership Renewal Invitation |
-| 4      | Member Renewed                |
-| 5      | Member Expiring               |
-
-### IT Functions
-
-| Option | Description                      |
-|--------|----------------------------------|
-| 6      | Add New Member                   |
-| 7      | Add New Member (EasyTeam Invite) |
-| 8      | Member Expired                   |
-
-### Custom Functions
-
-| Option | Description                 |
-|--------|-----------------------------|
-| 9      | Tailored Template Broadcast |
-
-### System
-
-| Option | Description |
-|--------|-------------|
-| 0      | Exit        |
-
----
-
-## Email Templates
-
-The following templates are included:
-
-| Template | Purpose |
-|-----------|----------|
-| membership_invite_to_join_template.html | Invite a prospective member to join |
-| membership_payment_request_template.html | Request membership payment |
-| membership_invite_to_renew_template.html | Renewal invitation |
-| membership_renewed_template.html | Confirmation of renewal |
-| membership_expiring_template.html | Membership expiring notification |
-| membership_expired_template.html | Membership expired notification |
-| membership_add_new_member_template.html | Welcome email |
-| membership_add_new_member_easyteam_invite_template.html | EasyTeam invitation |
-| membership_broadcast.html | General-purpose broadcast |
-
----
-
-## Broadcast Emails
-
-The **Tailored Template** option provides flexible bulk mail functionality:
-
-### Features
-
-- Select any HTML template
-- Specify a custom email subject
-- Attach optional files
-- Personalise content per recipient
-- Send bulk communications
-
-### Typical Use Cases
-
-- AGM notifications
-- Club newsletters
-- Safety notices
-- Event announcements
-- Membership updates
-- Training communications
-
----
-
-## Email Delivery Options
-
-The application supports:
-
-### Direct Delivery
-
-Emails are sent directly to each recipient.
-
-### BCC Delivery
-
-Recipients are added as BCC recipients, preventing exposure of email addresses to other members.
-
-This mode is particularly useful for:
-
-- Newsletters
-- Club announcements
-- Bulk communications
-
----
-
-## Logging
-
-All email activity is recorded in JSON Lines format.
-
-Log file:
-
-fmpgc_logs.jsonl
-
-Example entry:
-
-{
-    "timestamp": "2026-11-21T12:00:00Z",
-    "logger_name": "fmpgc",
-    "level": "INFO",
-    "to": "user@example.com",
-    "action": "MEMBER_RENEWED",
-    "result": "Success",
-    "message": "from:membership@fmpgc.org"
-}
-
-### Logged Information
-
-- Timestamp
-- Recipient
-- Action performed
-- Send result
-- Sending account
-- CC information
-- BCC information
-
----
-
-## Gmail API Protection
-
-To reduce the risk of hitting Gmail API rate limits, the application automatically pauses periodically:
-
-if count % 60 == 0:
-    time.sleep(60)
-
-After every 60 emails, the application pauses for 60 seconds before continuing.
-
----
+├── pyproject.toml
+├── README.md
+└── requirements.txt
+```
 
 ## Security
 
-Never commit the following files to source control:
+Never commit sensitive club or authentication files to version control (ensure these are listed in `.gitignore`):
 
-- Gmail API credentials
-- OAuth token files
-- Production member data
-- Real membership exports
-- Sensitive settings files
-
----
+* Gmail API credentials (`credentials_*.json`)
+* OAuth token files (`token_*.json`)
+* Production member data (`fmpgc_members.csv`)
+* Real membership exports or log files containing member emails (`fmpgc_logs.jsonl`, `fmpgc.log`)
+* Live configuration files (`data/settings.json`)
 
 ## Future Enhancements
 
-Potential future improvements include:
+* Dry-run / preview mode before sending bulk emails
+* Scheduled mailings
+* GUI interface
+* Membership expiry reporting
+* Automated CSV validation tool
+* Enhanced Gmail quota management
+* Audit reporting dashboard
 
-- Scheduled mailings
-- GUI interface
-- Membership expiry reporting
-- CSV validation tools
-- Email preview mode
-- Dry-run testing mode
-- Enhanced quota management
-- Audit reporting dashboard
+## Licence & Author
 
----
+**Licence:** Internal use for Flushing & Mylor Pilot Gig Club (FMPGC).
 
-## Licence
-
-Internal use for Flushing & Mylor Pilot Gig Club.
-
----
-
-## Author
-
-**Jon Bulman**
-
-Flushing & Mylor Pilot Gig Club (FMPGC) Membership Communication & Administration System.
+**Author:** Jon Bulman
