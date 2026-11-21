@@ -183,7 +183,7 @@ By default, the application loads its configuration from `data/fmpgc_settings.js
 
 ## Membership CSV Format
 
-The application reads member records from `<data-folder>/fmpgc_members.csv` using `cp1252` (Windows-1252) encoding and automatically drops completely blank rows.
+The application reads member records from `<data-folder>/fmpgc_members.csv` (or from the file specified in the command line) using `cp1252` (Windows-1252) encoding and automatically drops completely blank rows.
 
 ### Required Columns
 
@@ -227,8 +227,8 @@ python src/fmpgc_package/fmpgc.py
 | Argument            | Short  | Description | Default |
 | ------------------- | ------ | ----- | ----- |
 | `--data-folder`     | `-d`   | Directory containing CSV and HTML templates *(include trailing slash)* | `data/` |
-| `--config-file`     | `-c`   | Path to the JSON configuration file | `data/fmpgc_settings.json` |
-| `--csv-file`        | `-csv` | Path to the JSON configuration file | `data/fmpgc_members.csv`   |
+| `--config-file`     | `-c`   | Path to the JSON configuration file         | `data/fmpgc_settings.json` |
+| `--csv-file`        | `-csv` | Path to the people to email in a csv format | `data/fmpgc_members.csv`   |
 | `--membershipemail` | `-m`   | Membership email address used for CCing on relevant IT actions   | `fmpgcmembership@gmail.com` |
 
 **Example:**
@@ -238,7 +238,7 @@ fmpgc \
     --data-folder data/ \
     --config-file data/fmpgc_settings.json \
     --csv-file    data/fmpgc_members.csv \
-    --membershipemail membership@fmpgc.org
+    --membershipemail fmpgcmembership@gmail.com
 ```
 
 ### Menu Options
@@ -344,6 +344,7 @@ if count % 60 == 0:
 .
 ├── data/
 │   ├── fmpgc_members.csv
+│   ├── fmpgc_settings.json
 │   ├── membership_add_new_member_easyteam_invite_template.html
 │   ├── membership_add_new_member_template.html
 │   ├── membership_broadcast.html
@@ -352,9 +353,7 @@ if count % 60 == 0:
 │   ├── membership_invite_to_join_template.html
 │   ├── membership_invite_to_renew_template.html
 │   ├── membership_payment_request_template.html
-│   ├── membership_renewed_template.html
-│   ├── fmpgc_members.csv
-│   └── fmpgc_settings.json
+│   └── membership_renewed_template.html
 ├── src/
 │   └── fmpgc_package/
 │       ├── __init__.py
@@ -362,7 +361,6 @@ if count % 60 == 0:
 │       ├── email_utils.py
 │       ├── fmpgc.py
 │       └── fmpgc_classes.py
-├── fmpgc.log
 ├── fmpgc_logs.jsonl
 ├── MANIFEST.in
 ├── pyproject.toml
@@ -377,8 +375,8 @@ Never commit sensitive club or authentication files to version control (ensure t
 * Gmail API credentials (`credentials_*.json`)
 * OAuth token files (`token_*.json`)
 * Production member data (`fmpgc_members.csv`)
-* Real membership exports or log files containing member emails (`fmpgc_logs.jsonl`, `fmpgc.log`)
-* Live configuration files (`data/settings.json`)
+* Real membership exports or log files containing member emails (`fmpgc_logs.jsonl`)
+* Live configuration files (`data/fmpgc_settings.json`)
 
 ## Future Enhancements
 

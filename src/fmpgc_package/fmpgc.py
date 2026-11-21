@@ -85,7 +85,6 @@ def main():
     current_directory = os.getcwd()
     print(f"The current working directory is: [{current_directory}]\n")
 
-    csv_file = data_folder+"fmpgc_members.csv"
     try:
         csvData = pd.read_csv(csv_file, encoding="cp1252")
     except OSError as e:
