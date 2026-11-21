@@ -12,10 +12,12 @@ import time
 # Third-party
 import pandas as pd
 
-# Local application
-import jon_bulman_utilities
-
 from enum import IntEnum
+
+from fmpgc_package import setup_environment
+from fmpgc_package import Load_Config
+from fmpgc_package import Get_Variable
+from fmpgc_package import send_email
 
 class IT_OPTIONS(IntEnum):
     ADD_NEW_MEMBER = 6
@@ -126,7 +128,7 @@ def main():
     todays_date = datetime.now(tz=ZoneInfo("Europe/London"))
     print(f"\n--- SCRIPTS STARTING: {todays_date} ---\n")
 
-    jon_bulman_utilities.setup_environment()
+    setup_environment()
 
     parser = argparse.ArgumentParser(description="FMPGC Email Script")
     parser.add_argument(
@@ -161,19 +163,19 @@ def main():
     print(f"Membership email: [{args.membershipemail}]")
     membership_email = str(args.membershipemail)
 
-    config = jon_bulman_utilities.Load_Config(config_file)
+    config = Load_Config(config_file)
     if config is None:
         print("No configuration file loaded - exiting")
         return 1
     
-    it_credentials   = jon_bulman_utilities.Get_Variable("GOOGLE_FMPGC_IT_CREDENTIALS",config,0)
-    it_token_file    = jon_bulman_utilities.Get_Variable("GOOGLE_FMPGC_IT_TOKEN",config,0)
-    membership_credentials   = jon_bulman_utilities.Get_Variable("GOOGLE_FMPGC_MEMBERSHIP_CREDENTIALS",config,0)
-    membership_token_file    = jon_bulman_utilities.Get_Variable("GOOGLE_FMPGC_MEMBERSHIP_TOKEN",config,0)
+    it_credentials   = Get_Variable("GOOGLE_FMPGC_IT_CREDENTIALS",config,0)
+    it_token_file    = Get_Variable("GOOGLE_FMPGC_IT_TOKEN",config,0)
+    membership_credentials   = Get_Variable("GOOGLE_FMPGC_MEMBERSHIP_CREDENTIALS",config,0)
+    membership_token_file    = Get_Variable("GOOGLE_FMPGC_MEMBERSHIP_TOKEN",config,0)
     
-    fmpgc_it_email = jon_bulman_utilities.Get_Variable("FMPGC_IT_EMAIL",config,0)
-    fmpgc_membership_email = jon_bulman_utilities.Get_Variable("FMPGC_MEMBERSHIP_EMAIL",config,0)
-    bcc_emails = jon_bulman_utilities.Get_Variable("FMPGC_BCC_EMAILS",config,0)
+    fmpgc_it_email = Get_Variable("FMPGC_IT_EMAIL",config,0)
+    fmpgc_membership_email = Get_Variable("FMPGC_MEMBERSHIP_EMAIL",config,0)
+    bcc_emails = Get_Variable("FMPGC_BCC_EMAILS",config,0)
     print(f"BCC Emails: [{bcc_emails}]")
     # Check the csv file exists
     current_directory = os.getcwd()
@@ -373,7 +375,7 @@ def main():
                         #print(f"email body {email_body}")
             if action:
                 #print(f"Sending email to:{name} to:{emailAddress} bcc:{bcc}")
-                email_result=jon_bulman_utilities.send_email(credentials, token_file, emailAddress, subject, email_body,cc, bcc, attachment)
+                email_result=send_email(credentials, token_file, emailAddress, subject, email_body,cc, bcc, attachment)
 
                 fromcc = f"from:{from_email}"
                 if cc:
