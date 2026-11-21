@@ -24,7 +24,7 @@ def main():
 
     setup_environment()
 
-    parser = argparse.ArgumentParser(description="FMPGC Email Script")
+    parser = argparse.ArgumentParser(description="FMPGC Membership Communication & Administration System")
     parser.add_argument(
         "--data-folder",
         "-d",
@@ -37,8 +37,15 @@ def main():
         "-c",
         help="Location of the config file",
         type=str,
-        default="data/settings.json"
+        default="data/fmpgc_settings.json"
         )
+    parser.add_argument(
+        "--csv-file",
+        "-csv",
+        help="Location of the CSV file",
+        type=str,
+        default="data/fmpgc_members.csv"
+        )    
     parser.add_argument(
         "--membershipemail",
         "-m",
@@ -53,6 +60,9 @@ def main():
 
     print(f"Data folder: [{args.data_folder}]")
     data_folder = str(args.data_folder)
+
+    print(f"CSV file: [{args.csv_file}]")
+    csv_file = str(args.csv_file)
 
     print(f"Membership email: [{args.membershipemail}]")
     membership_email = str(args.membershipemail)

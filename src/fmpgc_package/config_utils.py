@@ -27,9 +27,9 @@ def Load_Config(configfile):
     if ok :
         with open(configPath, "r") as f:
             config = json.load(f)
-        print("Config loaded ",configPath)
+        print(f"Config loaded: [{configPath}]")
     else :
-         print("Failed to find config ",configPath)
+         print(f"Failed to find config: [{configPath}]")
 
     return config
 
