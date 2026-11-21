@@ -137,11 +137,11 @@ Because the application sends emails via the Gmail API from two accounts (IT and
 4. Give it a name (e.g., `FMPGC Desktop Client`) and click **Create**.
 5. Click **Download JSON** to save the credentials file to your computer.
 
-> **Tip:** Both the IT and Membership accounts can use copies of the same Desktop OAuth client JSON file (provided both email addresses are listed as test users), or you can create a separate Google Cloud project/client for each account. However, each account **must** point to its own distinct token file in `settings.json`.
+> **Tip:** Both the IT and Membership accounts can use copies of the same Desktop OAuth client JSON file (provided both email addresses are listed as test users), or you can create a separate Google Cloud project/client for each account. However, each account **must** point to its own distinct token file in `fmpgc_settings.json`.
 
 ### 5. Place Credentials and Generate OAuth Tokens
 
-1. Rename/copy the downloaded JSON file(s) to match the paths configured in `data/settings.json` (for example, `credentials_it.json` and `credentials_membership.json`).
+1. Rename/copy the downloaded JSON file(s) to match the paths configured in `data/fmpgc_settings.json` (for example, `credentials_it.json` and `credentials_membership.json`).
 2. The first time you send an email from either the **Membership** or **IT** account, a browser window will open asking you to sign in to Google and grant permission:
    * Sign in with the **corresponding account** (IT account for IT menu options; Membership account for Membership menu options).
    * If you see a *"Google hasn't verified this app"* warning (normal for internal/testing apps), click **Advanced > Go to FMPGC Membership Mailer (unsafe)** and grant access.
@@ -151,19 +151,21 @@ Because the application sends emails via the Gmail API from two accounts (IT and
 
 ## Configuration
 
-By default, the application loads its configuration from `data/settings.json`.
+By default, the application loads its configuration from `data/fmpgc_settings.json`.
 
 ### Example `data/settings.json`
 
 ```json
 {
-    "GOOGLE_FMPGC_IT_CREDENTIALS": "credentials_it.json",
-    "GOOGLE_FMPGC_IT_TOKEN": "token_it.json",
-    "GOOGLE_FMPGC_MEMBERSHIP_CREDENTIALS": "credentials_membership.json",
-    "GOOGLE_FMPGC_MEMBERSHIP_TOKEN": "token_membership.json",
-    "FMPGC_IT_EMAIL": "it@fmpgc.org",
-    "FMPGC_MEMBERSHIP_EMAIL": "membership@fmpgc.org",
-    "FMPGC_BCC_EMAILS": "committee@fmpgc.org"
+    "FMPGC_IT_EMAIL": "fmpgc_it@gmail.com",
+    "GOOGLE_FMPGC_IT_CREDENTIALS": "your it credentials file.json",
+    "GOOGLE_FMPGC_IT_TOKEN": "your it token file.json",
+
+    "FMPGC_MEMBERSHIP_EMAIL": "fmpgcmembership@gmail.com",
+    "GOOGLE_FMPGC_MEMBERSHIP_CREDENTIALS": "your membership credentials file.json",
+    "GOOGLE_FMPGC_MEMBERSHIP_TOKEN": "your membership token file.json",
+    
+    "FMPGC_BCC_EMAILS": "chair.fmpgc@gmail.com"
 }
 ```
 
@@ -222,18 +224,20 @@ python src/fmpgc_package/fmpgc.py
 
 ### Command-Line Arguments
 
-| Argument | Short | Description | Default |
-| ----- | ----- | ----- | ----- |
-| `--data-folder` | `-d` | Directory containing CSV and HTML templates *(include trailing slash)* | `data/` |
-| `--config-file` | `-c` | Path to the JSON configuration file | `data/settings.json` |
-| `--membershipemail` | `-m` | Membership email address used for CCing on relevant IT actions | `fmpgcmembership@gmail.com` |
+| Argument            | Short  | Description | Default |
+| ------------------- | ------ | ----- | ----- |
+| `--data-folder`     | `-d`   | Directory containing CSV and HTML templates *(include trailing slash)* | `data/` |
+| `--config-file`     | `-c`   | Path to the JSON configuration file | `data/fmpgc_settings.json` |
+| `--csv-file`        | `-csv` | Path to the JSON configuration file | `data/fmpgc_members.csv`   |
+| `--membershipemail` | `-m`   | Membership email address used for CCing on relevant IT actions   | `fmpgcmembership@gmail.com` |
 
 **Example:**
 
 ```bash
 fmpgc \
     --data-folder data/ \
-    --config-file data/settings.json \
+    --config-file data/fmpgc_settings.json \
+    --csv-file    data/fmpgc_members.csv \
     --membershipemail membership@fmpgc.org
 ```
 
@@ -349,7 +353,8 @@ if count % 60 == 0:
 │   ├── membership_invite_to_renew_template.html
 │   ├── membership_payment_request_template.html
 │   ├── membership_renewed_template.html
-│   └── settings.json
+│   ├── fmpgc_members.csv
+│   └── fmpgc_settings.json
 ├── src/
 │   └── fmpgc_package/
 │       ├── __init__.py

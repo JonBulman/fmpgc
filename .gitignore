@@ -1,8 +1,6 @@
 # FMPGC sensitive data & credentials
-data/settings.json
 *credentials*.json
 *token*.json
-*.csv
 
 # Logs
 *.log

@@ -6,6 +6,6 @@
     "FMPGC_MEMBERSHIP_EMAIL": "fmpgcmembership@gmail.com",
     "GOOGLE_FMPGC_MEMBERSHIP_CREDENTIALS": "your membership credentials file.json",
     "GOOGLE_FMPGC_MEMBERSHIP_TOKEN": "your membership token file.json",
-    
+
     "FMPGC_BCC_EMAILS": "chair.fmpgc@gmail.com"
 }
