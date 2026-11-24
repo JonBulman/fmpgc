@@ -46,13 +46,6 @@ def main():
         type=str,
         default="data/fmpgc_members.csv"
         )    
-    parser.add_argument(
-        "--membershipemail",
-        "-m",
-        help="FMPGC Membership email address",
-        type=str,
-        default="fmpgcmembership@gmail.com"
-        )
     args = parser.parse_args()
 
     print(f"Config file: [{args.config_file}]")
@@ -63,9 +56,6 @@ def main():
 
     print(f"CSV file: [{args.csv_file}]")
     csv_file = str(args.csv_file)
-
-    print(f"Membership email: [{args.membershipemail}]")
-    membership_email = str(args.membershipemail)
 
     config = Load_Config(config_file)
     if config is None:
@@ -154,16 +144,7 @@ def main():
     membership_payment_request_template  = templates["payment_request"]
     print('------------- ')
 
-    #emailCC = False
-    #option = input('CC Membership Email? (non-blank is yes) -> ')
-    #if option != "" :
-    #    emailCC = True
-
     cc = None
-    #if emailCC:
-    #    cc = membership_email
-    #    print("Emails will be CC'd to the membership email address")
-
     emailBCC = False
     option = input('Send Email as BCC to recipient? (non-blank is yes)? -> ')
     if option != "" :
@@ -192,7 +173,7 @@ def main():
             token_file = it_token_file
             from_email = fmpgc_it_email
             if option in fmpgc_classes.CC_MEMBERSHIP_OPTIONS:
-                cc = membership_email
+                cc = fmpgc_membership_email
             #    print("Emails will be CC'd to the membership email address")            
         else:                           # email from membership
             #print("Emails will be sent from the Membership email address")
@@ -225,7 +206,6 @@ def main():
             if count%60 == 0:
                 time.sleep(60)  # Sleep for 60 seconds after every 60 emails - this is to avoid hitting the Gmail API rate limit
 
-            #print(f"Processing:{index} name:{name} to:{emailAddress} bcc:{bcc}")
             action=True
             match option:
                 case fmpgc_classes.Option.NEW_MEMBER_INVITE:
@@ -264,7 +244,6 @@ def main():
                     except OSError as e:
                         print(f"Error reading template file: [{e}]")
                         sys.exit(1)
-                    #print(f"Processing:{index} name:{name} to:{emailAddress} bcc:{bcc}")
                     print(f"Template: {broadcast_template}")
                     if onlyOnceTemplate == False:
                         subject = input('Enter Subject -> ')
@@ -277,7 +256,6 @@ def main():
                         email_body += template_edit_html(row,str(tailored_template))
                         #print(f"email body {email_body}")
             if action:
-                #print(f"Sending email to:{name} to:{emailAddress} bcc:{bcc}")
                 email_result=send_email(credentials, token_file, emailAddress, subject, email_body,cc, bcc, attachment)
 
                 fromcc = f"from:{from_email}"

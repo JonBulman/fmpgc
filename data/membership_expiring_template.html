@@ -1,43 +1,148 @@
 <!DOCTYPE html>
-<html>
-<body>
-<h1 style="background-color:rgb(129, 14, 73);color:yellow";>Flushing & Mylor Pilot Gig Club</h1>
-<h2 style="color:orange"><b></b>Dear {{Name}}</b><br><br>
-Your membership is expiring. Is this intentional?</h2>
-<p>We would like to invite you to renew your 
-membership for the new season.</p>
-<p>It is important that we have up-to-date personal information. 
-If any of your circumstances have changed, please update your details <b><a href="https://docs.google.com/forms/d/10VX0_Fc7_quqGTuRbIxqAejIb0COmYmrLR3wHYEM-Wg/edit">here</a></b>.</p>
-<p><b>Fees and Donations</b></p>
-<p>The fees remain <b>unchanged</b> from last year.</p>
-<p>
-The rower membership fee helps meet our annual operating costs.
-We are also keen to keep investing in the future, by increasing our 
-support for training and having our equipment in the best possible condition - 
-repaired or renewed as regular usage takes its toll.
-</p><p>
-With this financial draw in mind you have the option of adding a 
-voluntary donation by becoming a <b>Friend of FMPGC</b>. 
-This is primarily intended to encourage rowers to add a private donation to 
-their basic membership fee, notionally £100.
-This element would be registered as a Gift Aid donation, 
-allowing the club to claim back 25%, increasing its value to £125.
-</p>
-<p>
-Standard Single Rower Membership: <b>£160</b><br>
-Friend of FMPGC (non-rower): <b>£100</b><br>
-Friend and Rower: <b>£260</b> (of which £100 is donation)<br>
-Cox Only (non-rower): <b>£50</b> (unchanged)<br>
-Concessionary Membership: <b>£80</b> (this applies to Full Time Students and now also to Apprentices) .
-</p>
-<p>
-BACS transfer: Flushing & Mylor Pilot Gig Club<br>
-Account No: <b>24794968</b><br>
-Sort Code: <b>30-95-75</b><br>
-Reference: {{Name}}<br>
-</p>
-This is an automated email.<br><br>
-Best regards,<br>FMPGC Membership<br><a href="mailto:fmpgcmembership@gmail.com">fmpgcmembership@gmail.com</a><br><br>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <meta name="supported-color-schemes" content="light">
+  <title>Membership Renewal | Flushing &amp; Mylor Pilot Gig Club</title>
+  <style>
+    /* Email clients that support media queries will apply these on smaller screens. */
+    @media screen and (max-width: 620px) {
+      .email-container { width: 100% !important; }
+      .mobile-padding { padding-left: 22px !important; padding-right: 22px !important; }
+      .mobile-heading { font-size: 26px !important; line-height: 32px !important; }
+      .fee-table td { padding: 12px 8px !important; }
+    }
+  </style>
+</head>
+<body style="margin:0; padding:0; background-color:#f5f3f5; font-family:Arial, Helvetica, sans-serif; color:#303038; -webkit-text-size-adjust:100%; -ms-text-size-adjust:100%;">
+  <!-- Hidden preview text displayed by many inboxes -->
+  <div style="display:none; font-size:1px; color:#f5f3f5; line-height:1px; max-height:0; max-width:0; opacity:0; overflow:hidden; mso-hide:all;">
+    Your Flushing &amp; Mylor Pilot Gig Club membership is nearing expiry. Find renewal fees and payment details inside.
+  </div>
+
+  <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="border-collapse:collapse; background-color:#f5f3f5;">
+    <tr>
+      <td align="center" style="padding:28px 12px 36px;">
+        <!--[if (gte mso 9)|(IE)]><table role="presentation" width="600" align="center" cellpadding="0" cellspacing="0" border="0"><tr><td><![endif]-->
+        <table role="presentation" class="email-container" cellspacing="0" cellpadding="0" border="0" width="600" style="width:600px; max-width:600px; border-collapse:separate; background-color:#ffffff; border-radius:12px; overflow:hidden;">
+          <tr>
+            <td align="center" class="mobile-padding" style="background-color:#810e49; padding:34px 44px 30px;">
+              <p style="margin:0 0 11px; font-size:12px; font-weight:bold; line-height:18px; letter-spacing:2px; color:#f5d867; text-transform:uppercase;">Membership</p>
+              <h1 style="margin:0; font-size:25px; font-weight:bold; line-height:32px; color:#ffffff;">Flushing &amp; Mylor<br>Pilot Gig Club</h1>
+              <div style="width:58px; height:3px; background-color:#f5d867; margin:20px auto 0; line-height:3px;">&nbsp;</div>
+            </td>
+          </tr>
+
+          <tr>
+            <td class="mobile-padding" style="padding:38px 44px 16px;">
+              <p style="margin:0 0 8px; font-size:15px; line-height:24px; color:#55505a;">Dear {{Name}},</p>
+              <h2 class="mobile-heading" style="margin:0 0 16px; font-size:30px; line-height:36px; color:#810e49;">It's time to renew your membership</h2>
+              <p style="margin:0 0 15px; font-size:15px; line-height:24px;">Your membership is approaching its expiry date, and we'd love you to join us for another season.</p>
+              <p style="margin:0 0 15px; font-size:15px; line-height:24px;">If you intend to renew, please choose the membership that suits you and make your payment using the details below.</p>
+              <p style="margin:0 0 22px; font-size:15px; line-height:24px;">If any of your personal details have changed, please update them so we can keep our records accurate.</p>
+              <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="border-collapse:separate;">
+                <tr>
+                  <td align="center" bgcolor="#810e49" style="border-radius:6px;">
+                    <a href="{{DetailsFormURL}}" style="display:inline-block; padding:13px 22px; color:#ffffff; text-decoration:none; font-size:15px; line-height:20px; font-weight:bold; border-radius:6px;">Update your details &rarr;</a>
+                  </td>
+                </tr>
+              </table>
+              <p style="margin:11px 0 0; font-size:12px; line-height:19px; color:#6e6970;">Only needed if your details have changed.</p>
+            </td>
+          </tr>
+
+          <tr>
+            <td class="mobile-padding" style="padding:20px 44px 7px;">
+              <h3 style="margin:0 0 6px; font-size:20px; line-height:28px; color:#810e49;">Membership fees</h3>
+              <p style="margin:0 0 19px; font-size:14px; line-height:23px; color:#55505a;">Good news &mdash; our membership fees remain <strong>unchanged</strong> from last year.</p>
+              <table role="presentation" class="fee-table" cellspacing="0" cellpadding="0" border="0" width="100%" style="width:100%; border-collapse:collapse; font-size:14px; line-height:21px;">
+                <tr style="background-color:#f6eef2;">
+                  <td style="padding:13px 12px; border-bottom:1px solid #e7dbe1; font-weight:bold; color:#810e49;">Membership type</td>
+                  <td align="right" style="padding:13px 12px; border-bottom:1px solid #e7dbe1; font-weight:bold; color:#810e49; white-space:nowrap;">Annual fee</td>
+                </tr>
+                <tr>
+                  <td style="padding:13px 12px; border-bottom:1px solid #ece8ec;">Standard single rower</td>
+                  <td align="right" style="padding:13px 12px; border-bottom:1px solid #ece8ec; font-weight:bold; white-space:nowrap;">&pound;160</td>
+                </tr>
+                <tr>
+                  <td style="padding:13px 12px; border-bottom:1px solid #ece8ec;">Friend of FMPGC <span style="color:#777078;">(non-rower)</span></td>
+                  <td align="right" style="padding:13px 12px; border-bottom:1px solid #ece8ec; font-weight:bold; white-space:nowrap;">&pound;100</td>
+                </tr>
+                <tr style="background-color:#fdf9ea;">
+                  <td style="padding:13px 12px; border-bottom:1px solid #ece8ec;">Friend and rower<br><span style="font-size:12px; color:#6e6970;">Includes a &pound;100 voluntary donation</span></td>
+                  <td align="right" style="padding:13px 12px; border-bottom:1px solid #ece8ec; font-weight:bold; white-space:nowrap;">&pound;260</td>
+                </tr>
+                <tr>
+                  <td style="padding:13px 12px; border-bottom:1px solid #ece8ec;">Cox only <span style="color:#777078;">(non-rower)</span></td>
+                  <td align="right" style="padding:13px 12px; border-bottom:1px solid #ece8ec; font-weight:bold; white-space:nowrap;">&pound;50</td>
+                </tr>
+                <tr>
+                  <td style="padding:13px 12px; border-bottom:1px solid #ece8ec;">Concessionary<br><span style="font-size:12px; color:#6e6970;">Full-time students and apprentices</span></td>
+                  <td align="right" style="padding:13px 12px; border-bottom:1px solid #ece8ec; font-weight:bold; white-space:nowrap;">&pound;80</td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <tr>
+            <td class="mobile-padding" style="padding:25px 44px 10px;">
+              <h3 style="margin:0 0 9px; font-size:19px; line-height:27px; color:#810e49;">Support the future of the club</h3>
+              <p style="margin:0 0 13px; font-size:14px; line-height:23px;">Your membership helps cover our annual running costs and supports training, equipment maintenance and future improvements.</p>
+              <p style="margin:0; font-size:14px; line-height:23px;">If you'd like to contribute a little extra, you can become a <strong>Friend of FMPGC</strong>. A voluntary donation of &pound;100 can be worth &pound;125 to the club through Gift Aid, <strong>if you are eligible and complete the relevant Gift Aid declaration</strong>.</p>
+            </td>
+          </tr>
+
+          <tr>
+            <td class="mobile-padding" style="padding:29px 44px 12px;">
+              <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="width:100%; border-collapse:separate; background-color:#f6eef2; border:1px solid #ebdfe5; border-radius:8px;">
+                <tr>
+                  <td style="padding:24px 23px;">
+                    <h3 style="margin:0 0 7px; font-size:20px; line-height:27px; color:#810e49;">How to pay</h3>
+                    <p style="margin:0 0 16px; font-size:14px; line-height:22px;">Please make a bank transfer (BACS) using these details:</p>
+                    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="border-collapse:collapse; font-size:14px; line-height:22px;">
+                      <tr>
+                        <td style="padding:4px 12px 4px 0; color:#655d65; vertical-align:top;">Account name</td>
+                        <td style="padding:4px 0; font-weight:bold;">Flushing &amp; Mylor Pilot Gig Club</td>
+                      </tr>
+                      <tr>
+                        <td style="padding:4px 12px 4px 0; color:#655d65;">Sort code</td>
+                        <td style="padding:4px 0; font-weight:bold;">30-95-75</td>
+                      </tr>
+                      <tr>
+                        <td style="padding:4px 12px 4px 0; color:#655d65;">Account number</td>
+                        <td style="padding:4px 0; font-weight:bold;">24794968</td>
+                      </tr>
+                      <tr>
+                        <td style="padding:4px 12px 4px 0; color:#655d65;">Reference</td>
+                        <td style="padding:4px 0; font-weight:bold;">{{Name}}</td>
+                      </tr>
+                    </table>
+                    <p style="margin:17px 0 0; padding-top:13px; border-top:1px solid #e3d5dc; font-size:12px; line-height:19px; color:#645e65;">Please use your name as the payment reference so we can identify your renewal.</p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <tr>
+            <td class="mobile-padding" style="padding:24px 44px 34px;">
+              <p style="margin:0 0 18px; font-size:14px; line-height:23px;">Thank you for supporting Flushing &amp; Mylor Pilot Gig Club. We look forward to another great season together.</p>
+              <p style="margin:0; font-size:14px; line-height:23px;">Best regards,<br><strong>FMPGC Membership</strong><br><a href="mailto:fmpgcmembership@gmail.com" style="color:#810e49; text-decoration:underline;">fmpgcmembership@gmail.com</a></p>
+            </td>
+          </tr>
+
+          <tr>
+            <td align="center" class="mobile-padding" style="background-color:#f1edf0; padding:17px 44px 20px; font-size:12px; line-height:20px; color:#6d6770;">
+              This is an automated membership reminder.<br>
+              Flushing &amp; Mylor Pilot Gig Club
+            </td>
+          </tr>
+        </table>
+        <!--[if (gte mso 9)|(IE)]></td></tr></table><![endif]-->
+      </td>
+    </tr>
+  </table>
 </body>
-<small>Template: membership_expiring_template.html</small>
 </html>

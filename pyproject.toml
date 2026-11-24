@@ -1,6 +1,10 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "fmpgc"
-version = "0.2.0"
+version = "0.3.0"
 description = "FMPGC automation tool"
 requires-python = ">=3.10"
 readme = "README.md"
@@ -9,16 +13,13 @@ authors = [
 ]
 
 dependencies = [
-    "pandas>=2.0"
+    "pandas>=2.0",
+    # Add any other packages from requirements.txt here (e.g. Google API libraries)
 ]
 
-[tool.setuptools.package-data]
-fmpgc = ["../../data/*"]
-
-[build-system]
-requires = ["setuptools>=61.0"]
-build-backend = "setuptools.build_meta"
+[tool.setuptools.packages.find]
+where = ["src"]
 
 [project.scripts]
-fmpgc = "fmpgc.fmpgc:main"
-
+fmpgc = "fmpgc_package.fmpgc:main"
+fmpgc_gui = "fmpgc_package.fmpgc_gui:main"
