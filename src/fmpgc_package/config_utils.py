@@ -1,6 +1,12 @@
 import json
 import os
 import sys
+from pathlib import Path
+import time
+
+import logging
+# Third-party
+import pandas as pd
 
 from dotenv import load_dotenv
 
@@ -54,28 +60,16 @@ def Get_Variable(name,config,verbose=0):
         print(f"Get_Variable: {name} NOT FOUND")
     return None
 
-OPTION_TEXT = {
-    fmpgc_classes.Option.EXIT: "Exit",
-    fmpgc_classes.Option.NEW_MEMBER_INVITE: "[Membership] New Member invite to join (personal details request)",
-    fmpgc_classes.Option.JOINING_MEMBER_PAYMENT: "[Membership-Treasury] Payment Request (Joining member)",
-    fmpgc_classes.Option.RENEWAL_PAYMENT: "[Membership-Treasury] Payment Request (Member invite to renew)",
-    fmpgc_classes.Option.MEMBER_RENEWED: "[Membership] Member renewed",
-    fmpgc_classes.Option.MEMBER_EXPIRING: "[Membership] Member expiring",
-    fmpgc_classes.Option.ADD_NEW_MEMBER: "[IT] Add new member. (Manually added to EasyTeam)",
-    fmpgc_classes.Option.ADD_NEW_MEMBER_EASYTEAM: "[IT] Add new member (EasyTeam invite link)",
-    fmpgc_classes.Option.MEMBER_EXPIRED: "[IT] Member expired",
-    fmpgc_classes.Option.TAILORED_TEMPLATE: "[IT] Tailored Template",
-}
-
-
 def get_menu_option() -> fmpgc_classes.Option:
     while True:  # Keep looping until they give a valid answer
         print("\nOptions:")
         print("-------------")
 
-        for option, description in OPTION_TEXT.items():
+        for item in fmpgc_classes.OPTION_DEFINITIONS:
+            option = item[1]
+            description = item[0]
             print(f"{option.value}. {description}")
-
+ 
         print("-------------")
 
         user_input = input("Select option: ")
@@ -87,7 +81,7 @@ def get_menu_option() -> fmpgc_classes.Option:
             # Try to match it to a valid Option
             option = fmpgc_classes.Option(i)
             
-            #print(f"\nSelected option: {option.name}\n{OPTION_TEXT[option]}")
+            #print(f"\nSelected option: {option.name}\n{fmpgc_classes.OPTION_DEFINITIONS[option.value][0]}")
             return option
 
         except ValueError:
@@ -97,3 +91,57 @@ def get_menu_option() -> fmpgc_classes.Option:
         except Exception as e:
             # This triggers if they enter a number that isn't in the menu (like '9')
             print(f"\n[!] Error: Not a valid menu option {e}.")
+
+def load_templates(data_folder: str) -> dict:
+    templates = {}
+    try:
+        for items in fmpgc_classes.OPTION_DEFINITIONS:
+            template_name = items[3] # name of the template file
+            if template_name is not None:
+                htmlfile = Path(data_folder) / template_name
+                templates[template_name] = htmlfile.read_text(encoding="utf-8")
+                #print(f"Option {items[1].value}: Loaded template: {template_name}")
+    except OSError as e:
+        print(f"Error reading template file: [{e}]")
+        sys.exit(1)
+    return templates
+
+def template_edit_html(row: pd.Series, inputhtml: str) -> str:
+    """Replace {{ColumnName}} placeholders in the HTML template with row values."""
+    body = inputhtml
+    for col in row.index:
+        value = row[col]
+        replacement = "" if pd.isna(value) else str(value)
+        body = body.replace(f"{{{{{col}}}}}", replacement)
+    return body
+
+class SystemMonitor:
+    def messagelog(self, to: str, message: str, action: str, result: str) -> None:
+        # 3. Structure all your data, including standard log metadata, as a dictionary
+        log_data = {
+            "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+            "logger_name": logger.name,
+            "level": "INFO",
+            "to": to,
+            "action": action,
+            "result": result,
+            "message": message
+        }
+        print(f"Log: {to} | Action: {action} | Result: {result} | Message: {message}")
+        
+        # 4. Convert the dictionary to a JSON string and log it using your custom logger
+        logger.info(json.dumps(log_data))
+        #input("Press Enter to continue...")  # Pause for user input
+
+# 1. Configure logging to only output the raw message, and save to a JSON lines file
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(message)s',
+    handlers=[
+        logging.FileHandler('fmpgc_logs.jsonl', mode='a'), # Save to file
+        #logging.StreamHandler()                             # Also print to console (optional)
+    ]
+)
+
+# 2. Create the custom logger to satisfy the linter
+logger = logging.getLogger(__name__)

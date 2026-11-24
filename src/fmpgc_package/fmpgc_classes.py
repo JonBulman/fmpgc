@@ -1,110 +1,47 @@
-import time
-import json
-import logging
 
 from enum import IntEnum
 
 class Option(IntEnum):
-    EXIT = 0
-    NEW_MEMBER_INVITE = 1
-    JOINING_MEMBER_PAYMENT = 2
-    RENEWAL_PAYMENT = 3
-    MEMBER_RENEWED = 4
-    MEMBER_EXPIRING = 5
-    ADD_NEW_MEMBER = 6
-    ADD_NEW_MEMBER_EASYTEAM = 7
-    MEMBER_EXPIRED = 8
-    TAILORED_TEMPLATE = 9
+    NEW_MEMBER_INVITE = 0
+    JOINING_MEMBER_PAYMENT = 1
+    RENEWAL_PAYMENT = 2
+    MEMBER_RENEWED = 3
+    MEMBER_EXPIRING = 4
+    ADD_NEW_MEMBER = 5
+    ADD_NEW_MEMBER_EASYTEAM = 6
+    MEMBER_EXPIRED = 7
+    TAILORED_TEMPLATE = 8
+    EXIT = 9
 
-OPTION_TEXT = {
-    Option.EXIT: "Exit",
-    Option.NEW_MEMBER_INVITE: "[Membership] New Member invite to join (personal details request)",
-    Option.JOINING_MEMBER_PAYMENT: "[Membership-Treasury] Payment Request (Joining member)",
-    Option.RENEWAL_PAYMENT: "[Membership-Treasury] Payment Request (Member invite to renew)",
-    Option.MEMBER_RENEWED: "[Membership] Member renewed",
-    Option.MEMBER_EXPIRING: "[Membership] Member expiring",
-    Option.ADD_NEW_MEMBER: "[IT] Add new member. (Manually added to EasyTeam)",
-    Option.ADD_NEW_MEMBER_EASYTEAM: "[IT] Add new member (EasyTeam invite link)",
-    Option.MEMBER_EXPIRED: "[IT] Member expired",
-    Option.TAILORED_TEMPLATE: "[IT] Tailored Template",
-}
-
+OPTION_DEFINITIONS = [
+    ("New Member invite to join (personal details request)", Option.NEW_MEMBER_INVITE, "FMPGC Invitation to Join!", "membership_invite_to_join_template.html"),
+    ("Joining Member Payment Request", Option.JOINING_MEMBER_PAYMENT, "FMPGC Membership Payment Request!", "membership_payment_request_template.html"),
+    ("Renewal Payment Invitation", Option.RENEWAL_PAYMENT, "FMPGC Membership Renewal Invitation!", "membership_invite_to_renew_template.html"),
+    ("Member Renewed (Welcome Back)", Option.MEMBER_RENEWED, "FMPGC Membership - Welcome Back!", "membership_renewed_template.html"),
+    ("Member Expiring", Option.MEMBER_EXPIRING, "FMPGC Membership Expiring", "membership_expiring_template.html"),
+    ("Add New Member", Option.ADD_NEW_MEMBER, "Welcome to FMPGC!", "membership_add_new_member_template.html"),
+    ("Add New Member (EasyTeam Invite)", Option.ADD_NEW_MEMBER_EASYTEAM, "Welcome to FMPGC!", "membership_add_new_member_easyteam_invite_template.html"),
+    ("Member Expired", Option.MEMBER_EXPIRED, "FMPGC Membership Expired - Sorry to see you go!", "membership_expired_template.html"),
+    ("Tailored / Broadcast Template", Option.TAILORED_TEMPLATE, "Membership Broadcast","membership_broadcast.html"),
+    ("Exit", Option.EXIT, "Exit the program", None)
+]
 class IT_OPTIONS(IntEnum):
-    ADD_NEW_MEMBER = 6
-    ADD_NEW_MEMBER_EASYTEAM = 7
-    MEMBER_EXPIRED = 8
-    TAILORED_TEMPLATE = 9
+    ADD_NEW_MEMBER = 5
+    ADD_NEW_MEMBER_EASYTEAM = 6
+    MEMBER_EXPIRED = 7
+    TAILORED_TEMPLATE = 8
 
 class MEMBERSHIP_OPTIONS(IntEnum):
-    NEW_MEMBER_INVITE = 1
-    JOINING_MEMBER_PAYMENT = 2
-    RENEWAL_PAYMENT = 3
-    MEMBER_RENEWED = 4
-    MEMBER_EXPIRING = 5
+    NEW_MEMBER_INVITE = 0
+    JOINING_MEMBER_PAYMENT = 1
+    RENEWAL_PAYMENT = 2
+    MEMBER_RENEWED = 3
+    MEMBER_EXPIRING = 4
 
 class CC_MEMBERSHIP_OPTIONS(IntEnum):
-    ADD_NEW_MEMBER = 6
-    ADD_NEW_MEMBER_EASYTEAM = 7
-    MEMBER_EXPIRED = 8
+    ADD_NEW_MEMBER = 5
+    ADD_NEW_MEMBER_EASYTEAM = 6
+    MEMBER_EXPIRED = 7
     
-def get_menu_option() -> Option:
-    while True:  # Keep looping until they give a valid answer
-        print("\nOptions:")
-        print("-------------")
-
-        for option, description in OPTION_TEXT.items():
-            print(f"{option.value}. {description}")
-
-        print("-------------")
-
-        user_input = input("Select option: ")
-        
-        try:
-            # Try to convert their input to a number
-            i = int(user_input)
-            
-            # Try to match it to a valid Option
-            option = Option(i)
-            
-            #print(f"\nSelected option: {option.name}\n{OPTION_TEXT[option]}")
-            return option
-
-        except ValueError:
-            # This triggers if they hit Enter without typing, or typed a letter (like 'A')
-            print(f"\n[!] Error: Please enter a valid number, not '{user_input}'.")
-            
-        except Exception as e:
-            # This triggers if they enter a number that isn't in the menu (like '9')
-            print(f"\n[!] Error: Not a valid menu option {e}.")
 
 
-class SystemMonitor:
-    def messagelog(self, to: str, message: str, action: str, result: str) -> None:
-        # 3. Structure all your data, including standard log metadata, as a dictionary
-        log_data = {
-            "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
-            "logger_name": logger.name,
-            "level": "INFO",
-            "to": to,
-            "action": action,
-            "result": result,
-            "message": message
-        }
-        print(f"Log: {to} | Action: {action} | Result: {result} | Message: {message}")
-        
-        # 4. Convert the dictionary to a JSON string and log it using your custom logger
-        logger.info(json.dumps(log_data))
-        #input("Press Enter to continue...")  # Pause for user input
-
-# 1. Configure logging to only output the raw message, and save to a JSON lines file
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(message)s',
-    handlers=[
-        logging.FileHandler('fmpgc_logs.jsonl', mode='a'), # Save to file
-        #logging.StreamHandler()                             # Also print to console (optional)
-    ]
-)
-
-# 2. Create the custom logger to satisfy the linter
-logger = logging.getLogger(__name__)

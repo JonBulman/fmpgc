@@ -26,6 +26,7 @@ import pandas as pd
 from fmpgc_package import (
     Get_Variable,
     Load_Config,
+    config_utils,
     fmpgc_classes,
     send_email,
     setup_environment,
@@ -56,40 +57,6 @@ FONT_SMALL = (FONT_FAMILY, 9)
 FONT_MONO = ("Consolas", 9)
 
 
-TEMPLATE_FILES = {
-    "expired": "membership_expired_template.html",
-    "expiring": "membership_expiring_template.html",
-    "new": "membership_add_new_member_template.html",
-    "new_easyteam": "membership_add_new_member_easyteam_invite_template.html",
-    "renewed": "membership_renewed_template.html",
-    "payment_request": "membership_payment_request_template.html",
-    "invite_to_renew": "membership_invite_to_renew_template.html",
-    "invite_to_join": "membership_invite_to_join_template.html",
-}
-
-OPTION_DEFINITIONS = [
-    ("New Member Invite", fmpgc_classes.Option.NEW_MEMBER_INVITE, "FMPGC Invitation to Join!", "invite_to_join"),
-    ("Joining Member Payment Request", fmpgc_classes.Option.JOINING_MEMBER_PAYMENT, "FMPGC Membership Payment Request!", "payment_request"),
-    ("Renewal Payment Invitation", fmpgc_classes.Option.RENEWAL_PAYMENT, "FMPGC Membership Renewal Invitation!", "invite_to_renew"),
-    ("Member Renewed (Welcome Back)", fmpgc_classes.Option.MEMBER_RENEWED, "FMPGC Membership - Welcome Back!", "renewed"),
-    ("Member Expiring", fmpgc_classes.Option.MEMBER_EXPIRING, "FMPGC Membership Expiring", "expiring"),
-    ("Add New Member", fmpgc_classes.Option.ADD_NEW_MEMBER, "Welcome to FMPGC!", "new"),
-    ("Add New Member (EasyTeam Invite)", fmpgc_classes.Option.ADD_NEW_MEMBER_EASYTEAM, "Welcome to FMPGC!", "new_easyteam"),
-    ("Member Expired", fmpgc_classes.Option.MEMBER_EXPIRED, "FMPGC Membership Expired - Sorry to see you go!", "expired"),
-    ("Tailored / Broadcast Template", fmpgc_classes.Option.TAILORED_TEMPLATE, "", None),
-]
-
-
-def template_edit_html(row: pd.Series, inputhtml: str) -> str:
-    """Replace {{ColumnName}} placeholders in the HTML template with row values."""
-    body = inputhtml
-    for col in row.index:
-        value = row[col]
-        replacement = "" if pd.isna(value) else str(value)
-        body = body.replace(f"{{{{{col}}}}}", replacement)
-    return body
-
-
 class FMPGCGuiApp:
     def __init__(
         self,
@@ -108,7 +75,7 @@ class FMPGCGuiApp:
         self.config = None
         self.csv_data: pd.DataFrame | None = None
         self.templates: dict[str, str] = {}
-        self.message_log = fmpgc_classes.SystemMonitor()
+        self.message_log = config_utils.SystemMonitor()
 
         # Config variables
         self.it_credentials = None
@@ -128,7 +95,7 @@ class FMPGCGuiApp:
         self.data_folder_var = tk.StringVar(value=data_folder)
         self.config_file_var = tk.StringVar(value=config_file)
         self.csv_file_var = tk.StringVar(value=csv_file)
-        self.option_var = tk.StringVar(value=OPTION_DEFINITIONS[0][0])
+        self.option_var = tk.StringVar(value=fmpgc_classes.OPTION_DEFINITIONS[0][0])
         self.bcc_mode_var = tk.BooleanVar(value=False)
 
         # Tailored template variables
@@ -137,7 +104,7 @@ class FMPGCGuiApp:
         self.attachment_var = tk.StringVar(value="")
         self.status_var = tk.StringVar(value="Ready. Load configuration and members CSV to begin.")
 
-        self._option_lookup = {label: (opt, subj, tmpl_key) for label, opt, subj, tmpl_key in OPTION_DEFINITIONS}
+        self._option_lookup = {label: (opt, subj, tmpl_key) for label, opt, subj, tmpl_key in fmpgc_classes.OPTION_DEFINITIONS}
 
         self._configure_styles()
         self._build_ui()
@@ -642,7 +609,7 @@ class FMPGCGuiApp:
         self.option_combo = ttk.Combobox(
             action_body,
             textvariable=self.option_var,
-            values=[item[0] for item in OPTION_DEFINITIONS],
+            values=[item[0] for item in fmpgc_classes.OPTION_DEFINITIONS],
             state="readonly",
             style="FMPGC.TCombobox",
         )
@@ -916,18 +883,18 @@ class FMPGCGuiApp:
         self.log(f"Loaded {len(df)} rows from [{csv_path}]. Available variables: {col_names}")
 
         # 3. Load HTML Templates
-        loaded_templates = {}
-        try:
-            for key, filename in TEMPLATE_FILES.items():
-                html_path = Path(data_folder) / filename
-                loaded_templates[key] = html_path.read_text(encoding="utf-8")
-        except OSError as e:
-            msg = f"Error reading template file: {e}"
-            self.log(msg, is_error=True)
-            self.status_var.set(msg)
-            if not silent_if_missing:
-                messagebox.showerror("Template error", msg)
-            return
+        loaded_templates = config_utils.load_templates(data_folder)
+        #try:
+        #    for key, filename in fmpgc_classes.TEMPLATE_FILE.items():
+        #        html_path = Path(data_folder) / filename
+        #        loaded_templates[key] = html_path.read_text(encoding="utf-8")
+        #except OSError as e:
+        #    msg = f"Error reading template file: {e}"
+        #    self.log(msg, is_error=True)
+        #    self.status_var.set(msg)
+        #    if not silent_if_missing:
+        #        messagebox.showerror("Template error", msg)
+        #    return
 
         self.templates = loaded_templates
         self.log(f"Loaded {len(self.templates)} standard HTML templates from [{data_folder}].")
@@ -973,7 +940,7 @@ class FMPGCGuiApp:
             messagebox.showerror("Preview error", str(e))
             return
 
-        rendered_html = template_edit_html(row, template_html)
+        rendered_html = config_utils.template_edit_html(row, template_html)
 
         win = tk.Toplevel(self.root)
         win.title(f"FMPGC Email Preview — {row['Name']}")
@@ -1152,7 +1119,7 @@ class FMPGCGuiApp:
                     self.log(f"Batch stopped by user during rate-limit pause ({count - 1}/{total}).")
                     break
 
-            email_body = template_edit_html(row, template_html)
+            email_body = config_utils.template_edit_html(row, template_html)
 
             try:
                 email_result = send_email(

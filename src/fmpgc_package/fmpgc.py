@@ -10,7 +10,7 @@ import time
 # Third-party
 import pandas as pd
 
-from fmpgc_package import setup_environment
+from fmpgc_package import config_utils, setup_environment
 from fmpgc_package import Load_Config
 from fmpgc_package import Get_Variable
 from fmpgc_package import send_email
@@ -112,36 +112,8 @@ def main():
             f"e.g. {{{{Name}}}} will be replaced with that row/column contents\n"
         )
 
-    # Load the HTML templates
-    template_files = {
-        "expired": "membership_expired_template.html",
-        "expiring": "membership_expiring_template.html",
-        "new": "membership_add_new_member_template.html",
-        "new_easyteam": "membership_add_new_member_easyteam_invite_template.html",
-        "renewed": "membership_renewed_template.html",
-        "payment_request": "membership_payment_request_template.html",
-        "invite_to_renew": "membership_invite_to_renew_template.html",
-        "invite_to_join": "membership_invite_to_join_template.html"
-    }
+    templates = config_utils.load_templates(data_folder)
 
-    templates = {}
-
-    try:
-        for name, filename in template_files.items():
-            htmlfile = Path(data_folder) / filename
-            templates[name] = htmlfile.read_text(encoding="utf-8")
-    except OSError as e:
-        print(f"Error reading template file: [{e}]")
-        sys.exit(1)
-
-    membership_expired_template          = templates["expired"]
-    membership_expiring_template         = templates["expiring"]
-    membership_add_new_member_template   = templates["new"]
-    membership_add_new_member_easyteam_invite_template = templates["new_easyteam"]
-    membership_renewed_template          = templates["renewed"]
-    membership_invite_to_renew_template  = templates["invite_to_renew"]
-    membership_invite_to_join_template   = templates["invite_to_join"]
-    membership_payment_request_template  = templates["payment_request"]
     print('------------- ')
 
     cc = None
@@ -152,7 +124,7 @@ def main():
         print("Emails will be sent as BCC to the member, and the member will not see the email address of the sender")
 
     # setup message log
-    message_log = fmpgc_classes.SystemMonitor()
+    message_log = config_utils.SystemMonitor()
 
     #onceOnly = False
     onlyOnceTemplate = False
@@ -207,54 +179,42 @@ def main():
                 time.sleep(60)  # Sleep for 60 seconds after every 60 emails - this is to avoid hitting the Gmail API rate limit
 
             action=True
-            match option:
-                case fmpgc_classes.Option.NEW_MEMBER_INVITE:
-                    subject = "FMPGC Invitation to Join!"
-                    email_body += template_edit_html(row,membership_invite_to_join_template)
-                case fmpgc_classes.Option.JOINING_MEMBER_PAYMENT:
-                    subject = "FMPGC Membership Payment Request!"
-                    email_body += template_edit_html(row,membership_payment_request_template)
-                case fmpgc_classes.Option.RENEWAL_PAYMENT:
-                    subject = "FMPGC Membership Renewal Invitation!"
-                    email_body += template_edit_html(row,membership_invite_to_renew_template)
-                case fmpgc_classes.Option.MEMBER_RENEWED:
-                    subject = "FMPGC Membership - Welcome Back!"
-                    email_body += template_edit_html(row,membership_renewed_template)
-                case fmpgc_classes.Option.MEMBER_EXPIRING:
-                    subject = "FMPGC Membership Expiring"
-                    email_body += template_edit_html(row,membership_expiring_template)
-                case fmpgc_classes.Option.ADD_NEW_MEMBER:
-                    subject = "Welcome to FMPGC!"
-                    email_body += template_edit_html(row,membership_add_new_member_template)
-                case fmpgc_classes.Option.ADD_NEW_MEMBER_EASYTEAM:
-                    subject = "Welcome to FMPGC!"
-                    email_body += template_edit_html(row,membership_add_new_member_easyteam_invite_template)
-                case fmpgc_classes.Option.MEMBER_EXPIRED:
-                    subject = "FMPGC Membership Expired - Sorry to see you go!"
-                    email_body += template_edit_html(row,membership_expired_template)
-                case fmpgc_classes.Option.TAILORED_TEMPLATE:
-                    tmpl = "membership_broadcast.html"
-                    if onlyOnceTemplate == False:
-                        tmpl = input('Enter template name (defaults to membership_broadcast.html)-> ')
-                        if tmpl != "" :
-                            broadcast_template = tmpl
+            if option == fmpgc_classes.Option.TAILORED_TEMPLATE:
+                template = fmpgc_classes.OPTION_DEFINITIONS[option.value][3]                
+                tmpl = templates[template]
+                if onlyOnceTemplate == False:
+                    txt = f'Enter template text (defaults to {template})-> '
+                    tmpl = input(txt)
+                    if tmpl != "" :
+                        broadcast_template = tmpl
+                if (broadcast_template not in templates) and (onlyOnceTemplate == False):
+                    print(f"Loading template: {broadcast_template}")
                     try:
                         htmlfile = Path(str(data_folder)) / Path(broadcast_template)
                         tailored_template = htmlfile.read_text(encoding="utf-8")
                     except OSError as e:
                         print(f"Error reading template file: [{e}]")
                         sys.exit(1)
-                    print(f"Template: {broadcast_template}")
-                    if onlyOnceTemplate == False:
-                        subject = input('Enter Subject -> ')
-                        attachment = input('Enter Attachment (blank for none) -> ')                        
-                    onlyOnceTemplate = True
-                    if subject == "" :
-                        action = False
-                        print("No subject entered, skipping email")
-                    else :
-                        email_body += template_edit_html(row,str(tailored_template))
-                        #print(f"email body {email_body}")
+                else:
+                    tailored_template = templates[template]
+                if onlyOnceTemplate == False:
+                    subject = fmpgc_classes.OPTION_DEFINITIONS[option.value][2]   
+                    txt = f'Enter subject text (defaults to {subject})-> '
+                    entered_subject = input(txt)
+                    subject = entered_subject if entered_subject != "" else subject
+                    attachment = input('Enter Attachment (blank for none) -> ')                        
+                onlyOnceTemplate = True
+                #if subject == "" :
+                #    action = False
+                #    print("No subject entered, skipping email")
+                #else :
+                email_body += config_utils.template_edit_html(row,str(tailored_template))
+                    #print(f"email body {email_body}")
+            else:
+                subject = fmpgc_classes.OPTION_DEFINITIONS[option.value][2]
+                template = fmpgc_classes.OPTION_DEFINITIONS[option.value][3]
+                email_body += config_utils.template_edit_html(row,templates[template])
+
             if action:
                 email_result=send_email(credentials, token_file, emailAddress, subject, email_body,cc, bcc, attachment)
 
@@ -271,17 +231,6 @@ def main():
                     result=email_result
                 )
         print(f"Processed {count} emails for option: {option.name}\n")
-
-def template_edit_html(row, inputhtml: str) -> str:
-    body = inputhtml
-
-    # Loop through each column name and value in the row
-    for col in row.index:
-        value = row[col]
-        body = body.replace(f"{{{{{col}}}}}", str(value))
-        #print(f"Replaced {{{{{col}}}}} with {value}")
-
-    return body
 
 
 if __name__ == "__main__":
