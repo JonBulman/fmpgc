@@ -24,8 +24,6 @@ import pandas as pd
 
 # Local package imports
 from fmpgc_package import (
-    Get_Variable,
-    Load_Config,
     config_utils,
     fmpgc_classes,
     send_email,
@@ -819,7 +817,7 @@ class FMPGCGuiApp:
         csv_path = self.csv_file_var.get().strip()
 
         # 1. Load Config
-        self.config = Load_Config(config_path)
+        self.config = config_utils.load_config(config_path)
         if self.config is None:
             msg = f"Failed to load configuration file: [{config_path}]"
             self.log(msg, is_error=True)
@@ -828,13 +826,13 @@ class FMPGCGuiApp:
                 messagebox.showerror("Configuration error", msg)
             return
 
-        self.it_credentials = Get_Variable("GOOGLE_FMPGC_IT_CREDENTIALS", self.config, 0)
-        self.it_token_file = Get_Variable("GOOGLE_FMPGC_IT_TOKEN", self.config, 0)
-        self.membership_credentials = Get_Variable("GOOGLE_FMPGC_MEMBERSHIP_CREDENTIALS", self.config, 0)
-        self.membership_token_file = Get_Variable("GOOGLE_FMPGC_MEMBERSHIP_TOKEN", self.config, 0)
-        self.fmpgc_it_email = Get_Variable("FMPGC_IT_EMAIL", self.config, 0)
-        self.fmpgc_membership_email = Get_Variable("FMPGC_MEMBERSHIP_EMAIL", self.config, 0)
-        self.bcc_emails = Get_Variable("FMPGC_BCC_EMAILS", self.config, 0)
+        self.it_credentials = config_utils.get_variable("GOOGLE_FMPGC_IT_CREDENTIALS", self.config)
+        self.it_token_file = config_utils.get_variable("GOOGLE_FMPGC_IT_TOKEN", self.config)
+        self.membership_credentials = config_utils.get_variable("GOOGLE_FMPGC_MEMBERSHIP_CREDENTIALS", self.config)
+        self.membership_token_file = config_utils.get_variable("GOOGLE_FMPGC_MEMBERSHIP_TOKEN", self.config)
+        self.fmpgc_it_email = config_utils.get_variable("FMPGC_IT_EMAIL", self.config)
+        self.fmpgc_membership_email = config_utils.get_variable("FMPGC_MEMBERSHIP_EMAIL", self.config)
+        self.bcc_emails = config_utils.get_variable("FMPGC_BCC_EMAILS", self.config)
         self.log(f"Loaded config [{config_path}] | BCC emails: [{self.bcc_emails}]")
 
         # 2. Load CSV

@@ -16,7 +16,7 @@ def setup_environment():
     load_dotenv()
 
 # The config file is a key file to load settings
-def Load_Config(configfile):
+def load_config(configfile):
     if getattr(sys, 'frozen', False):
         # Running as compiled .exe
         configPath = os.path.join(os.path.dirname(sys.executable), configfile)
@@ -39,26 +39,22 @@ def Load_Config(configfile):
 
     return config
 
-def Get_Variable(name,config,verbose=0):
-    # can be set in
-    # 1. Command line parameter
-    # 2. Environment variable
-    # 3. config.json file
-    # My order of priority is... 1,2,3
 
-    val = os.getenv(name)
-    if val is not None and verbose > 0:
-        print(f"Get_Variable: {name} from ENV VAR: {val}")
-    if val is not None:
-        return val
-    elif config is not None:
-        val = config.get(name)
-        if val is not None and verbose > 0:
-            print(f"Get_Variable: {name} from CONFIG FILE: {val}")
-        return val
-    if verbose > 0:
-        print(f"Get_Variable: {name} NOT FOUND")
-    return None
+def get_variable(name, config=None):
+    """
+    Return a configuration value as a string.
+
+    Order of precedence:
+    1. Environment variable
+    2. Configuration dictionary
+    3. Empty string
+    """
+    return str(
+        os.getenv(name)
+        or (config.get(name) if config else "")
+        or ""
+    )
+
 
 def get_menu_option() -> fmpgc_classes.Option:
     while True:  # Keep looping until they give a valid answer

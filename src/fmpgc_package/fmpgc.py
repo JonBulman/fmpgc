@@ -11,8 +11,7 @@ import time
 import pandas as pd
 
 from fmpgc_package import config_utils, setup_environment
-from fmpgc_package import Load_Config
-from fmpgc_package import Get_Variable
+
 from fmpgc_package import send_email
 from fmpgc_package import get_menu_option
 from fmpgc_package import fmpgc_classes
@@ -57,19 +56,19 @@ def main():
     print(f"CSV file: [{args.csv_file}]")
     csv_file = str(args.csv_file)
 
-    config = Load_Config(config_file)
+    config = config_utils.load_config(config_file)
     if config is None:
         print("No configuration file loaded - exiting")
         return 1
     
-    it_credentials   = Get_Variable("GOOGLE_FMPGC_IT_CREDENTIALS",config,0)
-    it_token_file    = Get_Variable("GOOGLE_FMPGC_IT_TOKEN",config,0)
-    membership_credentials   = Get_Variable("GOOGLE_FMPGC_MEMBERSHIP_CREDENTIALS",config,0)
-    membership_token_file    = Get_Variable("GOOGLE_FMPGC_MEMBERSHIP_TOKEN",config,0)
+    it_credentials   = config_utils.get_variable("GOOGLE_FMPGC_IT_CREDENTIALS",config)
+    it_token_file    = config_utils.get_variable("GOOGLE_FMPGC_IT_TOKEN",config)
+    membership_credentials   = config_utils.get_variable("GOOGLE_FMPGC_MEMBERSHIP_CREDENTIALS",config)
+    membership_token_file    = config_utils.get_variable("GOOGLE_FMPGC_MEMBERSHIP_TOKEN",config)
     
-    fmpgc_it_email = Get_Variable("FMPGC_IT_EMAIL",config,0)
-    fmpgc_membership_email = Get_Variable("FMPGC_MEMBERSHIP_EMAIL",config,0)
-    bcc_emails = Get_Variable("FMPGC_BCC_EMAILS",config,0)
+    fmpgc_it_email = config_utils.get_variable("FMPGC_IT_EMAIL",config)
+    fmpgc_membership_email = config_utils.get_variable("FMPGC_MEMBERSHIP_EMAIL",config)
+    bcc_emails = config_utils.get_variable("FMPGC_BCC_EMAILS",config)
     print(f"BCC Emails: [{bcc_emails}]")
     # Check the csv file exists
     current_directory = os.getcwd()
